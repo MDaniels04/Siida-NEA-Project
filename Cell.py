@@ -23,11 +23,11 @@ class Cell(E.Entity):
        #A signed amount that being in this cell offsets the temperature by (e.g.: colder in mountains)
        self.TemperatureModifier = GivenTemperatureModifier
 
-       #Is it precipitating in this tile
-       self.bPrecipitating = False
-
-       #Amount of snow currently in the cell - used for calculations for sprites to display and weight differences, as well as whether or not to class it as blocked
-       self.SnowInCell = 0
+       #Precipitation in this cell
+       # 0 -> It is not precipitating
+       # 1 -> It is raining
+       # 2 -> It is snowing
+       self.Precipitating = 0
 
        #Keeping track of the entities currently in this cell - including structures...
        self.EntitiesInCell = []
@@ -37,3 +37,7 @@ class Cell(E.Entity):
 
             "WoodSupply":0
 }
+
+    #Calculate the temperature in this cell
+    def GetTemperature(self, GlobalTemp):
+        return GlobalTemp + (self.Precipitating * -2) + self.TemperatureModifier

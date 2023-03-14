@@ -1,14 +1,11 @@
 import sqlite3
-import dill as pickle
+import pickle
 
 #class that handles iinterfacing with our saves database...
 class SaveManager():
 
-
-    #TESTING 123
-
     #Called before the world is created - makes the tables if they don't already exist...
-    def CreateDatabaseTables(self):
+    def __CreateDatabaseTables(self):
             self.SaveCursor.execute("""
                 CREATE TABLE IF NOT EXISTS Saves(
                     SaveName TEXT NOT NULL PRIMARY KEY,
@@ -27,20 +24,19 @@ class SaveManager():
             #We dont need a primary key - we can just use ROWID
             self.SaveCursor.execute("""
                 CREATE TABLE IF NOT EXISTS AIs(
+
                     Save TEXT NOT NULL,
-                    Name TEXT,
                     State INTEGER NOT NULL,
                     ActionQ BLOB, 
+                    ActiveTags BLOB,
                     ActiveGoal BLOB,
                     ActiveAction BLOB,
                     MoveQ BLOB,
-                    ActionQ BLOB,
-                    ActiveTags BLOB,
                     Hunter BLOB,
                     Hunting BLOB,
                     GoalLoc INTEGER,
                     Loc INTEGER,
-                    Carrying BLOB,
+                    Name TEXT,
 
                     FOREIGN KEY(Save) REFERENCES Saves(SaveName)
             );
@@ -60,7 +56,7 @@ class SaveManager():
             self.SaveController.commit()
 
     #Called before the world is created - so all the info is filled later on - this just handles ettling on a save name and prepping db for that when we want to save...
-    def CreateNewSave(self):        
+    def __CreateNewSave(self):        
 
                 #Get our existing saves 
                 SaveNames = self.SaveCursor.execute("SELECT SaveName FROM Saves").fetchall()      
@@ -68,28 +64,27 @@ class SaveManager():
 
                 if GivenSaveName == "NEW":
                     print("Sorry! You can't call a save 'NEW' - this keyword is reserved for making a new save when choosing between existing saves")
-                    self.CreateNewSave()
+                    self.__CreateNewSave()
                     
                 #Remember this'll be fetched in the format ([Name], ) so we want to take a gander at the 0th item from the fetched tuples
                 for i in SaveNames:         
                     if GivenSaveName == i[0]:                     
                         print("Error - that save name already exists! You will have to choose a different one!")
-                        self.CreateNewSave()
+                        self.__CreateNewSave()
 
                 #Reaching this point means we can accept this save name
                 self.SaveName =  GivenSaveName
                 self.SaveController.commit()
 
            
-
-    def InputSaveChoice(self):
+    def __InputSaveChoice(self):
 
 
             Choice = input("Please enter the name of the save you would like to load! Alternately, you can enter 'NEW' to start a new save! ")
                     
             if Choice == "NEW":
                 #New save
-                self.CreateNewSave()
+                self.__CreateNewSave()
             else:
                 
                 #Check that the given name actually exists...         
@@ -101,12 +96,12 @@ class SaveManager():
               
                     #Get all AI not including residents...
                     self.AIData = self.SaveCursor.execute("""
-                    SELECT * FROM AIs WHERE Save = :SaveName AND ResidentName IS NULL
+                    SELECT * FROM AIs WHERE Save = :SaveName AND Name IS NULL
                     """, { 'SaveName':Choice}).fetchall()
 
                     #And now the residents...
                     self.ResidentData = self.SaveCursor.execute("""
-                    SELECT * FROM AIs WHERE Save = :SaveName AND ResidentName IS NOT NULL
+                    SELECT * FROM AIs WHERE Save = :SaveName AND Name IS NOT NULL
                     """, { 'SaveName':Choice}).fetchall()
         
                     #Get our existing clouds
@@ -133,7 +128,7 @@ class SaveManager():
                     self.bFileToLoad = True
                 else:
                     print("There was an error with your input name - likely the name couldn't be found in the saves database...")
-                    self.InputSaveChoice()
+                    self.__InputSaveChoice()
             
 
 
@@ -162,7 +157,7 @@ class SaveManager():
 
         #We will be constructed upon system start, so want to handle the opening of files...
 
-        self.CreateDatabaseTables()
+        self.__CreateDatabaseTables()
 
         #Query save file to see if we can find any existing saves
         Saves = self.SaveCursor.execute("""
@@ -172,7 +167,7 @@ class SaveManager():
             #In case you close the program on start before making a first save...
         if len(Saves) < 1:
             print("No saves found")
-            self.CreateNewSave()
+            self.__CreateNewSave()
         else:
             print("We found some saves!")
 
@@ -182,7 +177,7 @@ class SaveManager():
 
             for i in Saves:
                 print("{} - Day number {}".format(i[0], i[1]))
-            self.InputSaveChoice()
+            self.__InputSaveChoice()
 
 
     #Convert coordinates into or out of a form that can be saved as an integer...
@@ -272,24 +267,33 @@ class SaveManager():
 
         AIToSave = GivenWorld.Siida.SiidaResidents + GivenWorld.Reindeer
         for i in AIToSave:
+
+            #Get all the variables we would otherwise need
+            
+            PickledAQ = pickle.dumps(i.ActionQueue)        
+            PickledTags = pickle.dumps(i.ActiveTags)
+            PickledGoal = pickle.dumps(i.ActiveGoal)
+            PickledAction = pickle.dumps(i.ActiveAction)
+            PickledMoves = pickle.dumps(i.MoveQueue)
+            PickledHunter = pickle.dumps(i.Hunter)
+            PickledHunting = pickle.dumps(i.Hunting)
+            
+            GoalLocComp = self.ConvertCoordinates(i.GoalLocation)
+            LocComp = self.ConvertCoordinates(i.Location)
+
+
             Name = None
 
+            #This is what discerns our AI - between residents and reindeer - 
             try:
                 Name = i.Name
             except:
                 pass
+            
 
-            #Get all the variables we would otherwise need
-
-
-
-            #DEBUG
-            pickle.detect.trace(True)
-
-            #Set our unpikclable stuff here...
-            PickledAI = pickle.dumps(i)
-
-            self.SaveCursor.execute("INSERT INTO AIs VALUES(:Save,  :Name, :Resident)", {'Save': self.SaveName, 'Name': Name, })
+            self.SaveCursor.execute("""
+            INSERT INTO AIs VALUES(:Save,  :State, :ActionQ, :Tags, :ActiveGoal, :ActiveAction, :MoveQ, :Hunter, :Hunting, :GoalLoc, :Loc, :Name)""", 
+            {'Save': self.SaveName, 'State': i.CurrentState, 'ActionQ': PickledAQ, 'Tags': PickledTags, 'ActiveGoal': PickledGoal, 'ActiveAction': PickledAction, 'MoveQ': PickledMoves, 'Hunter': PickledHunter, 'Hunting':PickledHunting, 'GoalLoc':GoalLocComp, 'Loc': LocComp, 'Name': Name})
 
         for i in GivenWorld.Weather.CloudsInWorld:
             GridComp = self.ConvertGrid(i.Grid)          

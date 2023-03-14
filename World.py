@@ -125,15 +125,20 @@ class World(CA.CellularAutomata):
 
 
             for i in Saver.AIData:
-                OldReindeer = Reindeer.Reindeer(IMGS.ReindeerIMG, self, Saver.ConvertCoordinates(i[2]))
-    
-                OldReindeer.CurrentState = i[3]
-                OldReindeer.MoveQueue = pickle.loads(i[4])
-                OldReindeer.ActionQueue = pickle.loads(i[5])
-                OldReindeer.ActiveAction = pickle.loads(i[6])
-                OldReindeer.ActiveGoal = pickle.loads(i[7])
-                self.Reindeer.append(OldReindeer)
 
+                OldReindeer = Reindeer.Reindeer(IMGS.ReindeerIMG, self, Saver.ConvertCoordinates(i[10]))
+
+                OldReindeer.CurrentState = i[1]
+                OldReindeer.ActionQueue = pickle.loads(i[2])
+                OldReindeer.ActiveTags = pickle.loads(i[3])
+                OldReindeer.ActiveGoal = pickle.loads(i[4])
+                OldReindeer.ActiveAction = pickle.loads(i[5])
+                OldReindeer.MoveQueue = pickle.loads(i[6])
+                OldReindeer.Hunter = pickle.loads(i[7])
+                OldReindeer.Hunting = pickle.loads(i[8])
+                OldReindeer.GoalLocation = Saver.ConvertCoordinates(i[9])
+            
+                self.Reindeer.append(OldReindeer)
             self.AddSelfToBatch()
             
 

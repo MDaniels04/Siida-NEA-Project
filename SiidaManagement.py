@@ -63,8 +63,24 @@ class Siida():
             #Now we need to load up our residents again...
             self.SiidaResidents = []
             for i in Saver.ResidentData:
-                #Construct object...
-                self.SiidaResidents.append(i[2])
+        
+                #Reconstruct these members from all the variables...
+
+                OldResident = Resident.Resident(IMGS.PersonIMG, self.World, Saver.ConvertCoordinates(i[10]), self)
+
+                OldResident.CurrentState = i[1]
+                OldResident.ActionQueue = pickle.loads(i[2])
+                OldResident.ActiveTags = pickle.loads(i[3])
+                OldResident.ActiveGoal = pickle.loads(i[4])
+                OldResident.ActiveAction = pickle.loads(i[5])
+                OldResident.MoveQueue = pickle.loads(i[6])
+                OldResident.Hunter = pickle.loads(i[7])
+                OldResident.Hunting = pickle.loads(i[8])
+                OldResident.GoalLocation = Saver.ConvertCoordinates(i[9])
+                #Dont need to set location, already handled that gubbins
+                OldResident.Name = i[11]
+
+                self.SiidaResidents.append(OldResident)      
         else:
 
             #Here we are specifying a coord to be taken as the current centre of the Siida -

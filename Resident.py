@@ -8,30 +8,41 @@ import random
 
 class Resident(AI.AI):
     #Overload of entity aloows for option of sprite creation and spawning in the constructor - disabled by default so the 
-    def __init__(self, GivenRep, GivenWorld, SpawnLocation, GivenSiida):
+    #If bLoading is true we do not need to spend any time on calculating values for these - they will be given to us...
+    def __init__(self, GivenRep, GivenWorld, SpawnLocation, GivenSiida, bLoading = False):
 
         #The siida this entity belongs to - effects the available actions to this entity and goal assignment
         self.Siida = GivenSiida
+        
+        self.Name = ""
 
-        #Most of these are Sami names, according to https://www.nordicnames.de/wiki/Category:Sami_Names
-        #Of course, I have smuggled in the odd reference name...                                                                                                            
-        Names = [
+        #0 - 100 - hown hungry are we? If this hits 100, we die!!
+        self.Hunger = 0
 
-        #These are all real
-        "Ruigi", "Speadina", "Bierdn", "Sire", "Gustu", "Nigo", "Migil", "Filpa", "Juhvo", "Johanas", "Duvká", "Olen", "Ailo", "Egel", "Benne",  "Dure", "Buohttá", "Aron", 
+        #0 - 100 - how exposed to the elements (cold) are we? If this hits 100, we die!
+        self.Exposure = 0
 
-        #Joke names / References past this point
+        if bLoading == False:
 
-        "Utrid", 
-        "Dovahkiin",
+            #Most of these are Sami names, according to https://www.nordicnames.de/wiki/Category:Sami_Names
+            #Of course, I have smuggled in the odd reference name...                                                                                                            
+            Names = [
 
-        #I reckoned I wouldnt get away with sans or papyrus :(
-        "Toriel", "Alphy", "Asgore", "Undyne", "Frisk"]
+            #These are all real
+            "Ruigi", "Speadina", "Bierdn", "Sire", "Gustu", "Nigo", "Migil", "Filpa", "Juhvo", "Johanas", "Duvká", "Olen", "Ailo", "Egel", "Benne",  "Dure", "Buohttá", "Aron", 
 
-        #For the flavour texts purpose, so we get an idea of who's doing what...
-        self.Name = Names[random.randint(0, (len(Names) - 1))]
+            #Joke names / References past this point
 
-        print(self.Name, "has joined the Siida!")
+            "Utrid", 
+            "Dovahkiin",
+
+            #I reckoned I wouldnt get away with sans or papyrus :(
+            "Toriel", "Alphy", "Asgore", "Undyne", "Frisk"]
+
+            #For the flavour texts purpose, so we get an idea of who's doing what...
+            self.Name = Names[random.randint(0, (len(Names) - 1))]
+
+            print(self.Name, "has joined the Siida!")
 
         #What resources are we currently carrying? While we carry stuff we have got back to the "siida". Doesn't really affect things except if we die on our way back to the siida
         self.CarryingResource = {
@@ -42,7 +53,6 @@ class Resident(AI.AI):
         
         }
     
-
         self.PersonalResource = {
 
         #For now same food as a reindeer.... dk how likely this is to remain the same...
@@ -50,8 +60,6 @@ class Resident(AI.AI):
         
         }
         super().__init__(GivenRep, GivenWorld, SpawnLocation)
-
-        #We want to get to the reindeer...
 
         self.AvailableActions = self.AvailableActions + [
 
@@ -93,14 +101,19 @@ class Resident(AI.AI):
         self.ActiveTags = self.ActiveTags + [
 
             Tag.Tag("InSiida")
-        ]
+        ]  
 
     #Resident's version of death will take any goals we were undertaking and pop them back into the Siida's needed goal's list...
-    def Death(self):
-        super().Death()
+    def Death(self, Reason):
 
+        #Flavour text to better understand
+        print(self.Name, " has died due to ", Reason)
+
+        #If we were working to fulfill a goal, then we want it to go back on to the needed goals to allow others to do it!
         if self.ActiveGoal != None:
             self.Siida.NeededGoals.append(self.ActiveGoal)
+
+        super().Death()
 
 
     #Overload sets the sprite location, but with checks as to whether or not this moves them in / out of the Siida
@@ -127,3 +140,23 @@ class Resident(AI.AI):
             if (abs(self.Location[0] - self.Siida.CentreLocation[0]) + abs(self.Location[1] - self.Siida.CentreLocation[1])) <= self.Siida.SiidaRadius:
                 self.ActiveTags.append(Tag.Tag("InSiida"))
                 print(self.Name, " has walked inside of  the siida...")
+
+
+    #Overload of daily function to check for temperature...
+    def DailyFunction(self, NeededGoals = []):
+        
+        #Our exposure increases if we are in a cold place
+        #CHANGE ONCE WE GOT IN HUT ACTION...
+
+        TempDiff = self.World.Grid[self.Location[1]][self.Location[0]].GetTemperature(self.World.Weather.GlobalTemperature) + 5
+        if TempDiff < 0:
+            self.Exposure += TempDiff * 5
+        else:
+            self.Exposure = 0
+
+        if self.Exposure >= 100:
+            self.Death("overexposure to the cold!")
+
+        #Hunger "calculations" done in Siida management
+
+        super().DailyFunction(NeededGoals)

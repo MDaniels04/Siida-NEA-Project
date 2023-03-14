@@ -9,19 +9,17 @@ import pyglet.sprite as PS
 class Cloud(CA.CellularAutomata):
 
     #We want all cells that will no longer be covered 
-    def ApplyToMap(self, Movement = (0,0)):
+    def ApplyToMap(self,Movement = (0,0)):
 
-            #should remove all sprites!
+            #Remove all our existing sprites
             for i in self.CloudSprites:
                 i.delete()
-    
             self.CloudSprites.clear()
-            
 
             #Coord we treat the top left of the grid as...
             TopCoord = (self.Coords[0] + Movement[0], self.Coords[1] + Movement[1])
 
-            #Cells that are affected in this new cloud iteration
+            #Cells that we are now affecting by the cloud
             NewCells = []
             
             #Iterate through our grid, apply sprites and such to 
@@ -39,12 +37,16 @@ class Cloud(CA.CellularAutomata):
             #Update our next position to spawn in...
             self.Coords = TopCoord  
 
-            #Compare the cells that should be raining now with those that were raining last iteration...
-            for Cell in NewCells:
+            #FUTURE MORGAN FIX HERE!
 
-                #If this sprite isnt already in the right place, we want it!            
+            #Compare the cells that should be raining now with those that were raining last iteration...
+            for Cell in NewCells:         
                 if Cell not in self.AffectingCells:
-                    self.WeatherManager.Owner.Grid[Cell[0]][Cell[1]].bPrecipitating = True
+                    Precip = 1
+                    if self.WeatherManager.GlobalTemperature >0:
+                        self.WeatherManager.Owner.Grid[Cell[1]][Cell[0]].bPrecipitating = True
+
+
                     NewSprite = pyglet.sprite.Sprite(IMGS.CloudIMG, Cell[1] * 16, Cell[0] * 16, batch=self.WeatherManager.Owner.DrawBatch, group=IMGS.Weather)
                     NewSprite.opacity = 195
                     self.CloudSprites.append(NewSprite)
@@ -54,7 +56,14 @@ class Cloud(CA.CellularAutomata):
                 self.DestroyCloud()
 
             self.AffectingCells = NewCells
-           
+
+            #Set the precipitating values for the purpose of temperature modification...
+            for i in self.AffectingCells:
+                    Cell = 
+                if self.WeatherManager.GlobalTemperature > 0:
+                    i.Precipitating = 1
+                else:
+                    i.Precipitating = 2
 
     
                     
@@ -102,6 +111,11 @@ class Cloud(CA.CellularAutomata):
     #Basically it is the daily progression of each cloud - shrinking in size and moving
     def Degenerate(self):
         self.CloudAge += 1
+         
+        #Reset precipitation
+        for i in self.AffectingCells:
+            i.Precipitating = 0
+
         if random.randrange(self.CloudAge, 11) == 10:
             self.DestroyCloud()
         else:

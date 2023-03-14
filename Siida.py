@@ -1,10 +1,11 @@
 '''
-
-    MESSAGES AND SUCH
-
+    IMPORTANT MESSAGES
     
-    The comments on this are an absoloute mess between over annotating, under annotating, and comments reffering to code that no longer exists. Sorry.
-    Some important notes about drawing:
+    This project was a None Examined Assesment for an AQA A level Computer Science course. As such it was developed with the intent to fit the criterea for such projects. It will not be updated any further than release.
+
+    For unkown reasons, after testing on a secondary device, there were errors with pyglet group constructors - 
+    They were expecting the constructor OrderedGroup([int]) rather than as it is in documentation, and in this code Group(order=[int]). 
+    If you get errors running this code, try changing this in the IMGS.py file.
 
             ORDER GROUPS
             0 - MAP
@@ -47,7 +48,6 @@ MainBatch = pyglet.graphics.Batch()
 #The world
 #Time stuff also handle
 World = W.World((50,50), MainBatch, Saver)
-
 
 #Might decide to increment the time between "days" idk...
 #Moved time between days to 3 seconds for understanding purposes

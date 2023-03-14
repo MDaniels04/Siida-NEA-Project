@@ -53,7 +53,6 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         #What's the maximum MANHATTAN DISTANCE that we can spot things we are searching for away from?
         #TEMP HIGHER WE NEED TO SORT OUT ALL THESE VALUES...
         self.MaxSearchDistance = 10
-      
 
         #What cells are we due to move to as per our needed actions?
         self.MoveQueue = []
