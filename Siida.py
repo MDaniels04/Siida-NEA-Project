@@ -20,9 +20,11 @@ import World as W
 import SaveManager as S
 
 #Handles pyglet initialisation
-import pyglet
+import pyglet 
 
 import IMGS
+
+#import pdb; pdb.set_trace()
 
 #save stuff
 Saver = S.SaveManager()
@@ -49,9 +51,8 @@ MainBatch = pyglet.graphics.Batch()
 #Time stuff also handle
 World = W.World((50,50), MainBatch, Saver)
 
-#Might decide to increment the time between "days" idk...
-#Moved time between days to 3 seconds for understanding purposes
-pyglet.clock.schedule_interval(World.Time.Day, 3)
+#Call the day function every x seconds...
+pyglet.clock.schedule_interval(World.Time.Day, 0.1)
 
 @MainWindow.event
 def on_draw():

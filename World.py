@@ -26,7 +26,7 @@ class World(CA.CellularAutomata):
         for i in self.Grid:
             for j in i:
                 j.Spawn((StartY, StartX))
-                self.MapSprites.append(j.Sprite)
+                self.MapSprites.append(j._Sprite)
                 #self.MapSprites.append(j)
 
                 #Cell weight initially unique so we use this to ID our cells
@@ -41,12 +41,16 @@ class World(CA.CellularAutomata):
 
                     #We also fill lists of types of cells for easier identification - for example, rather than having an algorithm searching for tiles, we simply fill the lists, then have them iterated through and 
                     if j.Weight == 1:
-                        self.WoodResourceCoordinates.append((StartY, StartX))
                         self.ForestCoords.append((StartY, StartX)) 
                     
                     elif j.Weight == 2:
                         self.HillCoords.append((StartY, StartX))
-                   
+
+                    elif j.Weight == 50:
+                        self.MountainCoords.append((StartY, StartX))
+                    else:
+      
+                        self.LowlandCoords.append((StartY, StartX))
                 else:
                     self.SeaCoords.append((StartY, StartX))
 
@@ -84,23 +88,24 @@ class World(CA.CellularAutomata):
 
 
         self.MapSprites = []
-        
-
+       
         #An array storing the coordinates of cells that aren't in the sea - used for finding locations to spawn entities... 
+
         self.LandCoords = []
     
+        #Basic land cells
+        self.LowlandCoords = []
+
         #Same thing for sea cells 
         self.SeaCoords = []
-
-        #Array storing the location of all the trees in the world - used for finding forested locations....
-        self.WoodResourceCoordinates = []
 
         #The difference between this and the above is the above stores where has the wood resource - and shrinks as trees are cut down... This is the forest tiles - tree or not.
         self.ForestCoords = []
 
-
         #Storing where hills are on the map
         self.HillCoords = []
+
+        self.MountainCoords = []
 
 
         #Our weather manager, dealing with the weather across the world.
@@ -119,6 +124,8 @@ class World(CA.CellularAutomata):
 
             self.Grid =  Saver.ConvertGrid(Saver.SaveData[2], self.Grid, S = SeaCell, L = LandCell, H = HillCell, F = ForestCell, M = MountainCell,)
             
+            self.Weather.CumCloudChance = Saver.SaveData[6]            
+
             #Map is sorted
 
             #Add our AI in...
@@ -135,7 +142,6 @@ class World(CA.CellularAutomata):
                 OldReindeer.ActiveAction = pickle.loads(i[5])
                 OldReindeer.MoveQueue = pickle.loads(i[6])
                 OldReindeer.Hunter = pickle.loads(i[7])
-                OldReindeer.Hunting = pickle.loads(i[8])
                 OldReindeer.GoalLocation = Saver.ConvertCoordinates(i[9])
             
                 self.Reindeer.append(OldReindeer)
@@ -145,22 +151,22 @@ class World(CA.CellularAutomata):
         else:
 
             #Land on sea
-            self.AddNoiseToGrid(LandCell, SeaCell, 45)
-            self.RefineFeature(9, LandCell, SeaCell, 4,5)
+            self._AddNoiseToGrid(LandCell, SeaCell, 45)
+            self._RefineFeature(9, LandCell, SeaCell, 4,5)
 
 
             #Hills on land
-            self.AddNoiseToGrid(HillCell, LandCell, 48)
-            self.RefineFeature(5, HillCell, LandCell, 4,6)
+            self._AddNoiseToGrid(HillCell, LandCell, 48)
+            self._RefineFeature(5, HillCell, LandCell, 4,6)
 
             #EDIT SHAPES THEY UGLY DANG
     
             #Mountain on hills
-            self.AddNoiseToGrid(MountainCell, HillCell, 90)
-            self.RefineFeature(2, MountainCell, HillCell, 6,5)
+            self._AddNoiseToGrid(MountainCell, HillCell, 90)
+            self._RefineFeature(2, MountainCell, HillCell, 6,5)
 
-            self.AddNoiseToGrid(ForestCell, LandCell, 90)
-            self.RefineFeature(4, ForestCell, LandCell, 6,7)
+            self._AddNoiseToGrid(ForestCell, LandCell, 90)
+            self._RefineFeature(4, ForestCell, LandCell, 6,7)
 
             self.AddSelfToBatch()
         

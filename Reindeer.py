@@ -20,7 +20,7 @@ class Reindeer(AI.AI):
 
         }        
 
-        self.AvailableActions = self.AvailableActions + [
+        self._AvailableActions = self._AvailableActions + [
 
         ]
 

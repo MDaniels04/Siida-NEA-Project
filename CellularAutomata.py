@@ -28,7 +28,7 @@ class CellularAutomata():
 
                 
     #Assign points in the grid to be of correct type
-    def AddNoiseToGrid(self, GivenNoise, GivenSurroundings, intSpawnChance):
+    def _AddNoiseToGrid(self, GivenNoise, GivenSurroundings, intSpawnChance):
         random.seed()
 
         for Y in range(self.GridDims[0]):
@@ -42,7 +42,7 @@ class CellularAutomata():
                         self.Grid[Y][X] = GivenNoise
 
     #Iterate through our grid and compare it to 
-    def RefineFeature(self, intPasses, givenCell, givenSurroundings, intGivenAdjRule, intGivenAdjNotRule):
+    def _RefineFeature(self, intPasses, givenCell, givenSurroundings, intGivenAdjRule, intGivenAdjNotRule):
           
         #Refinement gets better the more times we do it!
         for PassNumber in range(intPasses):

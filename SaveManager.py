@@ -14,7 +14,8 @@ class SaveManager():
                     SiidaLocation INTEGER,
                     SiidaNeededGoals BLOB,
                     FoodStock INTEGER,
-                    CloudChance INTEGER
+                    CloudChance INTEGER,
+                    LavvuStocked INTEGER
                     
                 ) WITHOUT ROWID;
             """)
@@ -47,7 +48,7 @@ class SaveManager():
                     Save TEXT NOT NULL,
                     CloudLocation INTEGER NOT NULL,
                     CloudGrid TEXT NOT NULL,
-                    CloudAge INTEGER NOT NULL,
+                    _CloudAge INTEGER NOT NULL,
     
                     FOREIGN KEY(Save) REFERENCES Saves(SaveName)
                 );
@@ -270,13 +271,19 @@ class SaveManager():
 
             #Get all the variables we would otherwise need
             
-            PickledAQ = pickle.dumps(i.ActionQueue)        
-            PickledTags = pickle.dumps(i.ActiveTags)
-            PickledGoal = pickle.dumps(i.ActiveGoal)
-            PickledAction = pickle.dumps(i.ActiveAction)
-            PickledMoves = pickle.dumps(i.MoveQueue)
-            PickledHunter = pickle.dumps(i.Hunter)
-            PickledHunting = pickle.dumps(i.Hunting)
+            PickledAQ = pickle.dumps(i._ActionQueue)        
+            PickledTags = pickle.dumps(i._ActiveTags)
+            PickledGoal = pickle.dumps(i._ActiveGoal)
+            PickledAction = pickle.dumps(i._ActiveAction)
+            PickledMoves = pickle.dumps(i._MoveQueue)
+            PickledHunter = pickle.dumps(i._Hunter)
+
+            #Only our residents have a found so we use this try and except to catch the cases in which this is a reindeer...
+            PickledHunting = None
+            try:
+                PickledHunting = pickle.dumps(i.Found)
+            except:
+                pass
             
             GoalLocComp = self.ConvertCoordinates(i.GoalLocation)
             LocComp = self.ConvertCoordinates(i.Location)
@@ -290,15 +297,14 @@ class SaveManager():
             except:
                 pass
             
-
             self.SaveCursor.execute("""
             INSERT INTO AIs VALUES(:Save,  :State, :ActionQ, :Tags, :ActiveGoal, :ActiveAction, :MoveQ, :Hunter, :Hunting, :GoalLoc, :Loc, :Name)""", 
-            {'Save': self.SaveName, 'State': i.CurrentState, 'ActionQ': PickledAQ, 'Tags': PickledTags, 'ActiveGoal': PickledGoal, 'ActiveAction': PickledAction, 'MoveQ': PickledMoves, 'Hunter': PickledHunter, 'Hunting':PickledHunting, 'GoalLoc':GoalLocComp, 'Loc': LocComp, 'Name': Name})
+            {'Save': self.SaveName, 'State': i._CurrentState, 'ActionQ': PickledAQ, 'Tags': PickledTags, 'ActiveGoal': PickledGoal, 'ActiveAction': PickledAction, 'MoveQ': PickledMoves, 'Hunter': PickledHunter, 'Hunting':PickledHunting, 'GoalLoc':GoalLocComp, 'Loc': LocComp, 'Name': Name})
 
-        for i in GivenWorld.Weather.CloudsInWorld:
+        for i in GivenWorld.Weather._CloudsInWorld:
             GridComp = self.ConvertGrid(i.Grid)          
-            LocComp = self.ConvertCoordinates(i.Coords)
-            Age = i.CloudAge
+            LocComp = self.ConvertCoordinates(i.Location)
+            Age = i._CloudAge
             self.SaveCursor.execute("INSERT INTO Clouds VALUES (:Save, :Location, :Grid, :Age)", {"Save":self.SaveName, "Location":LocComp, "Grid":GridComp, 'Age':Age})  
 
 
@@ -314,9 +320,9 @@ class SaveManager():
             UPDATE Saves 
             SET DayNumber = :Day, Map = :Comp, SiidaLocation = :SiidaLoc, SiidaNeededGoals = :Goals, FoodStock = :Food, CloudChance = :CChance
             WHERE SaveName = :Save             
-            """, {'Save': self.SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance': GivenWorld.Weather.CumCloudChance})
+            """, {'Save': self.SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance': GivenWorld.Weather._CumCloudChance})
         else:
-            self.SaveCursor.execute("INSERT INTO Saves VALUES (:Save, :Day, :Comp, :SiidaLoc, :Goals, :Food, :CChance)", {'Save': self.SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance':GivenWorld.Weather.CumCloudChance})
+            self.SaveCursor.execute("INSERT INTO Saves VALUES (:Save, :Day, :Comp, :SiidaLoc, :Goals, :Food, :CChance, :LStock)", {'Save': self.SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance':GivenWorld.Weather._CumCloudChance, 'LStock': GivenWorld.Siida.LavvuStocked})
 
         #And that SHOULD be us saved to a file...
         self.SaveController.commit()

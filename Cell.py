@@ -16,9 +16,6 @@ class Cell(E.Entity):
        #Weight is simulated as a measure of difficulty to pass through a cell for one reason or another
        #Lower numbers better!
        self.Weight = GivenWeight
-
-       #The weight we default back to, as weight may change depening on the climate in the cell
-       self.DefaultWeight = GivenWeight
     
        #A signed amount that being in this cell offsets the temperature by (e.g.: colder in mountains)
        self.TemperatureModifier = GivenTemperatureModifier

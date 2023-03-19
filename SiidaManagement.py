@@ -5,6 +5,7 @@ import math
 import Goal
 import Tag
 import pickle
+import pyglet.clock as PC
 
 #Siida management manages the residents in our Siida - essentially assigning goals to them
 
@@ -23,7 +24,7 @@ class Siida():
                 InBounds.append(It)
                 #NOT CALLING HERE              
 
-        return InBounds[random.randrange(0, len(InBounds))]
+        return random.choice(InBounds)
 
     #Created at the start of the game...
     # Spawn radius is the distance around the main point we class this Siida at
@@ -37,6 +38,12 @@ class Siida():
 
         #The Lavvu in our world!
         self.Lavvu = []
+
+        #Are we migrating?
+        self.bMigrating = False
+
+        #How many lavvu do we have stocked and want to put down...
+        self.LavvuStocked = 0
 
         self.SiidaResidents = []
         
@@ -60,6 +67,8 @@ class Siida():
             }
             
 
+            self.LavvuStocked = Saver.SaveData[7]
+
             #Now we need to load up our residents again...
             self.SiidaResidents = []
             for i in Saver.ResidentData:
@@ -70,8 +79,8 @@ class Siida():
 
                 OldResident.CurrentState = i[1]
                 OldResident.ActionQueue = pickle.loads(i[2])
-                OldResident.ActiveTags = pickle.loads(i[3])
-                OldResident.ActiveGoal = pickle.loads(i[4])
+                OldResident._ActiveTags = pickle.loads(i[3])
+                OldResident._ActiveGoal = pickle.loads(i[4])
                 OldResident.ActiveAction = pickle.loads(i[5])
                 OldResident.MoveQueue = pickle.loads(i[6])
                 OldResident.Hunter = pickle.loads(i[7])
@@ -129,7 +138,52 @@ class Siida():
     #The function run every day, checking the stats of the siida and assigning goals if the problem arises....
     def DailyFunction(self):
 
-        #Update of statistics
+       # self.SiidaResidents[0].Death("Debug!")
+       # self.SiidaResidents.pop(0)
+
+
+        #if len(self.SiidaResidents) < 1:
+            #print("Everyone died! Simulation Over!")
+            #PC.unschedule(self.World.Time.Day)
+            
+
+        #Look into migrating
+        DayOfYear = self.World.Time.DayNumber % 365
+
+        #Migrate to mountains
+
+
+        #We want to go to random tiles of a type so the migrations are more noticeable than just moving 2 cells away, though it may not make the most logical sense for a siida to do so.
+
+        bMigrationStart = False
+
+        if DayOfYear == 1:
+            self.CentreLocation = random.choice(self.World.MountainCoords)
+            bMigrationStart = True
+        elif DayOfYear == 274:
+            self.CentreLocation = random.choice(self.World.LowlandCoords)
+            bMigrationStart = True
+        elif DayOfYear == 335:
+            self.CentreLocation = random.choice(self.World.ForestCoords)
+            bMigrationStart = True
+
+        #Assign enough new goals to migrate for each lavvu and give everyone the migration tag...
+        if bMigrationStart:
+            self.bMigrationStart = False
+            if len(self.Lavvu) > 0:
+        
+                #Give all residents the ability to do this...
+                for i in self.SiidaResidents:
+                                            #When a resident is "migrating" they can pack up lavvu rather than going to make...
+                    i._ActiveTags.append(Tag.Tag("PackingAbility"))
+                #This should automatically be removed when they place the huts...
+
+                for j in range(len(self.Lavvu)):
+                    self.NeededGoals.append(Goal.Goal([Tag.Tag("BuiltLavvu")], " pack up lavvus to migrate", 5))
+
+        #When to remove...
+
+        #Update of food levels...
    
         self.ResourcesInStock["FoodSupply"] -= (len(self.SiidaResidents) * 5)
 
@@ -145,24 +199,21 @@ class Siida():
         elif self.CryCooldown[0] > 0:
             self.CryCooldown[0] -= 1
 
-
-
         #Checks to see if we should build any houses...
-        #If we have more people than we have lavvu, we should build a house...        
-        LavvuNeeded = len(self.SiidaResidents) - len(self.Lavvu) * 2
-        if(LavvuNeeded != 0) and self.CryCooldown[1] == 0:
-            for i in range(LavvuNeeded):
-                self.CryCooldown[1] += 50
-                self.NeededGoals.append(Goal.Goal([Tag.Tag("BuiltLavvu")], "build a lavvu", 5))
+        #2 People per Lavvu - if we don't have that, we go get some more!      
+        LavvuNeeded = math.ceil((len(self.SiidaResidents) /2) - (len(self.Lavvu) + self.LavvuStocked))
+        if LavvuNeeded > 0 and self.CryCooldown[1] == 0:
+            self.CryCooldown[1] += 1000
+            for i in range(LavvuNeeded):              
+                self.NeededGoals.append(Goal.Goal([Tag.Tag("BuiltLavvu")], "build a lavvu", 2))
         elif self.CryCooldown[1] > 0:
             self.CryCooldown[1] -= 1
-    
 
         #Sort our needed goal list so the first goals are the ones that need to be addressed first....
         self.NeededGoals.sort(key=lambda x: x.Priority, reverse=True)
    
         #Sort our residents ascending by the priority of their current goals so those with the least important goals will get assigned goals first
-        self.SiidaResidents.sort(key=lambda x: x.ActiveGoal.Priority)
+        self.SiidaResidents.sort(key=lambda x: x._ActiveGoal.Priority)
        
 
         #Now we go through our residents and run their daily function..
@@ -175,5 +226,3 @@ class Siida():
     def TakeGoal(self):
         self.NeededGoals.pop(0)
        
-    #The goal to migrate is given at the same time every year
-    #Febuary -> Mountain calving grounds...

@@ -13,31 +13,31 @@ class DesicionMaker():
         # Item 0 = action itself (i.e.: what we want to do)
         # Item 1+ = coords we link to 
         # Key = "coord" of node...
-        self.Adjacencies = {}
+        self._Adjacencies = {}
         
         #Where was the "coordinates" of the last node we added?
-        self.RelativeCoords = (0,0)
+        self._RelativeCoords = (0,0)
 
         #Item 0 = the coordinates we found this end point at
         #Item 1 = the number node this was (used for calcing when we should connect it)
-        self.EndPoints = []
+        self._EndPoints = []
 
         #cOunting which number node this is - used for end point calculations...
-        self.Count = 0
+        self._Count = 0
 
     #This function works regressively, so we only want these backwqards connections...
     
     #Utility function for adding a new node to our adjacency lists
     #Relative coordinates is the coordinates (based on weight NOT 
     #I represents the "branch" of this node
-    def AddNode(self, GivenNode, I, PreviousCoordinates, Weight = 0):
+    def _AddNode(self, GivenNode, I, PreviousCoordinates, Weight = 0):
         
         #We should never call this without previous coordinates - not even as a rule should be physically impossible
         #As such we dont need to error check for that eventuallity 
 
         if len(PreviousCoordinates) > 1:
             #Ensured we will always have an array of coords
-            self.RelativeCoords = []
+            self._RelativeCoords = []
 
             #Because tuples dont suppourt item assignment (REALLY irritating), we are instead going to create avg as a list...
             avg = []
@@ -60,18 +60,18 @@ class DesicionMaker():
             #+ add connections to the given coordinates 
             
             for AvgIt in avg:
-                self.RelativeCoords.append(AvgIt / len(PreviousCoordinates))       
+                self._RelativeCoords.append(AvgIt / len(PreviousCoordinates))       
 
             #Tags dont have weight - hence why we pass in weight as 0, so we can override if it isnt a tag
 
         #If we have one thing then just set to that!s
         else:
-            self.RelativeCoords = PreviousCoordinates[0]
+            self._RelativeCoords = PreviousCoordinates[0]
 
         #Add weight so long as it isnt 0
 
         #We need to turn this into a list as we cant assign with tuples :(
-        New = list(self.RelativeCoords)
+        New = list(self._RelativeCoords)
         if Weight > 0:
             if len(New) - 1 < I:
                 #For the difference we want to append  0 till we get the branch we want
@@ -84,32 +84,32 @@ class DesicionMaker():
                New[I] += Weight
 
         #Tuples are unhashable in our dictionary - so we convert you back into a a tuple..
-        self.RelativeCoords = tuple(New)
-        self.Adjacencies[self.RelativeCoords] = [GivenNode]    
+        self._RelativeCoords = tuple(New)
+        self._Adjacencies[self._RelativeCoords] = [GivenNode]    
                                   
     #Utility function for adding connections to an existing node
-    def AddConnections(self,  Connections):
+    def _AddConnections(self,  Connections):
 
         #As with before, we need to ensure thats an array
         
         #Remember we won't be able to modify the relative coord once its set so we need to use this minimally if possible!    
         for ConnectionsIt in Connections:
-            self.Adjacencies[self.RelativeCoords].append(ConnectionsIt)
+            self._Adjacencies[self._RelativeCoords].append(ConnectionsIt)
     
 
     #util function for taking the end points (tuples of coords and a number representing the count) and returning the usable coordinates
-    def GetEndPointCoords(self, ClusterLowerBound = 0):
+    def __GetEndPointCoords(self, ClusterLowerBound = 0):
         LinkPoints = []
-        for EndIt in self.EndPoints:
+        for EndIt in self._EndPoints:
         #If we drew this 
             if ClusterLowerBound <= EndIt[1]:
                 LinkPoints.append(EndIt[0])
-            self.EndPoints.remove(EndIt)
+            self._EndPoints.remove(EndIt)
     
         return LinkPoints
                 
     #Function for taking our goal and available actions, and drawing a set of adjacency lists for pathfinding through to discern a plan of action for our AI
-    def FormPlanningGraph(self, GivenGoal, Performer, GoalConnect = (1,0), Branch = 0):
+    def _FormPlanningGraph(self, GivenGoal, Performer, GoalConnect = (1,0), Branch = 0):
         
         try:
             self.Name = self.Name
@@ -126,13 +126,13 @@ class DesicionMaker():
         #Branch is the given "branch of the graph we are on" - which will change which axis we move the relative coords on
         #Goal connect is the connections we want to make - in this case, just the node behind us
         
-        self.AddNode(GivenGoal, Branch, [GoalConnect], Weight) 
-        self.Count += 1
+        self._AddNode(GivenGoal, Branch, [GoalConnect], Weight) 
+        self._Count += 1
     
         #Cluster lower bound necessary for discerning between which end points a tag should connect to...
-        ClusterLowerBound = self.Count
+        ClusterLowerBound = self._Count
 
-        self.AddConnections([GoalConnect])
+        self._AddConnections([GoalConnect])
         
         #/////
         #Get our unmet prerequisite tags for achieving this goal, or any blocked tags we cannot have...
@@ -143,7 +143,7 @@ class DesicionMaker():
         for GoalIt in GivenGoal.Prereqs:
             #Have we found this tag?
             bFoundTag = False
-            for ActiveIt in Performer.ActiveTags:
+            for ActiveIt in Performer._ActiveTags:
                 
                 if ActiveIt.TagName == GoalIt.TagName:
                     bFoundTag = True
@@ -156,35 +156,35 @@ class DesicionMaker():
         if len(UnmetTags) > 0:
             for UnmetIt in UnmetTags:   
                 LinkPoints = []
-                for EndIt in self.EndPoints:
+                for EndIt in self._EndPoints:
                     #If we drew this 
                     if ClusterLowerBound <= EndIt[1]:
                         LinkPoints.append(EndIt[0])
-                    self.EndPoints.remove(EndIt)
+                        self._EndPoints.remove(EndIt)
                     
                 #Ensure we link with the action calling this 
-                LinkPoints.append(self.RelativeCoords)
-                self.AddNode(UnmetIt, Branch, LinkPoints, 1)
-                self.AddConnections(LinkPoints)
+                LinkPoints.append(self._RelativeCoords)
+                self._AddNode(UnmetIt, Branch, LinkPoints, 1)
+                self._AddConnections(LinkPoints)
 
                 #Add connections to the "end points" (performable action s that came before this)
     
                 #Set our tag location so all our actions have a place to connect to...
-                TagLocation = self.RelativeCoords
+                TagLocation = self._RelativeCoords
                 #Coordinates not working ... :/
 
                 Branch = 0
 
-                for ActionIt in Performer.AvailableActions:
+                for ActionIt in Performer._AvailableActions:
                     for EffectIt in ActionIt.EffectTags:
                         #If this is what we need to solve rn...
                         if EffectIt.TagName == UnmetIt.TagName:
                                         
                             #Recursion around!    
-                            self.FormPlanningGraph(ActionIt, Performer, TagLocation, Branch)
+                            self._FormPlanningGraph(ActionIt, Performer, TagLocation, Branch)
                             Branch += 1      
                             
         else:
             #Add to end points - if it links directly in to a prerequisite it will be popped instantly....
-            #Count tacked on the back here to be paired with curent count to ensure that we connect to the right Count
-            self.EndPoints.append((self.RelativeCoords, self.Count)) 
+            #_Count tacked on the back here to be paired with curent count to ensure that we connect to the right _Count
+            self._EndPoints.append((self._RelativeCoords, self._Count)) 
