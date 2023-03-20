@@ -6,18 +6,14 @@ import DesicionMaker as DM
 import Tag
 import Action
 
-#AI are entities with the ability to choose a sequence of actions to complete a goal...
-
+#AI are entities with desicion making and pathfinding capabilities
 class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
 
- 
-    #Overload of entity aloows for option of sprite creation and spawning in the constructor - disabled by default so the
+    #Our parameters are as with entity
     def __init__(self, GivenRep, GivenWorld, SpawnLocation):
 
-        #Really annoyingly, we need to explicitly call constructors here as super seems to only call the entity constructor
-
+        #We are required to explicitly call both constructors as super will only call the first inherited class' functionality (entity)
         AStar.AStar.__init__(self)
-        #Really weirldy this constructor is called twice but if only called once we get issues referencing variables in it...
         DM.DesicionMaker.__init__(self)
 
         #A mini Finite State Machine so we can make sure the Ai reaches the location required
@@ -32,7 +28,6 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
             #IDLE ACTIONS
             #Wander about
             Action.Wander([Tag.Tag("Wander")], True, "wander about", 1, GivenRemovesTags = [Tag.Tag("PackingAbility")])
-
         ]
        
         #The queue of actions that will be undertaken
@@ -50,21 +45,11 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         #Are we in the process of "doing" an action? what?
         self._ActiveAction = None
 
-        #What's the maximum MANHATTAN DISTANCE that we can spot things we are searching for away from?
-        #TEMP HIGHER WE NEED TO SORT OUT ALL THESE VALUES...
-        self.MaxSearchDistance = 10
-
         #What cells are we due to move to as per our needed actions?
         self._MoveQueue = []
 
         #The location we are aiming to move to...
-        self.GoalLocation = (0,0)
-
-        #What resouces does this AI grant? For example a reindeer has a personal food value of [ITS GONNA CHANGE IN BALANCE, IMAGINE THE CORRECT VALUE HERE - THX]
-        self.PersonalResource = {
-
-            "FoodSupply":0
-        }
+        self._GoalLocation = (0,0)
 
         #We will always want to auto spawn our AI
         super().__init__(GivenRep, SpawnLocation, GivenWorld.DrawBatch, IMGS.People, True)  
@@ -99,23 +84,23 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         #If we have some goals that need completing for the Siida
         if len(NeededGoals) > 0:
             bRequiredGoals = True
-            if NeededGoals[0].Priority > self._ActiveGoal.Priority:
-               try:                                                     #A 0 priority goal is essentially a time filler - wandering - or pausing - something not worth other AI picking up...                               
-                    if self._ActiveAction.Interruptable == True and self._ActiveGoal.Priority > 0:
-                        try:    
-                            self.Siida.NeededGoals.append(self._ActiveGoal)
+            if NeededGoals[0]._Priority > self._ActiveGoal._Priority:
 
-                        #In the exception case (reindeer) there isn't anything to give the needed goal back to - so just drop it
-                        except:
-                            pass
-                    self.AssignNewGoal(NeededGoals[0])
-                    self.Siida.TakeGoal()
+                #Try incase our active action is none (i.e.: we aren't doing anything)
+                try:
+                                                 #A 0 priority goal is essentially a time filler - wandering - or pausing - something not worth other AI picking up...                               
+                    if self._ActiveAction._bInterruptable == True:
+                        if self._ActiveGoal._Priority > 0: 
+                            self.Siida.NeededGoals.append(self._ActiveGoal)
+                        self.AssignNewGoal(NeededGoals[0])
+                        self.Siida.TakeGoal()
+                #so it will be interruptible
+                except:
+                        self.AssignNewGoal(NeededGoals[0])
+                        self.Siida.TakeGoal()
+    
+                    
             
-               #If we don't have an active goal we will want to take the needed goal anyway....                                     
-               except:
-                    self.AssignNewGoal(NeededGoals[0])
-                    self.Siida.TakeGoal()
-      
         #Go through our states.
 
         #IDLE STATE - we go here when we don't have any goals and are looking for something to do...
@@ -125,7 +110,7 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
                self.Siida.TakeGoal()
             else:
                     pass
-                    #Else idle around - have a wonder, have a chill...
+                    #Else wander
                     self.AssignNewGoal(Goal.Goal([Tag.Tag("Wander")], " pass the time"))
         
         #MOVING STATE - We have been given a move queue and are ready to follow it...
@@ -159,31 +144,29 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
     #Update this entities statistics every day...
     def DailyFunction(self, NeededGoals = []):
 
-        #STATISTICAL UPDATES - Our temperature, 
-        #Finite state machine stuff (in this function)
+        #Call our FSm
         self.__FiniteStateMachine(NeededGoals)
 
-
-        #If anyone is hunting us, and where we are now is "visible" to them, and we are not in the location we were, then we want to update their location they aim to reach...     
-
+        #If anyone is hunting us, and we move, we need to update where the hunter is going to
         #Try incase this is a none type
         if self._Hunter != None:
-            if self.Location != self._Hunter.GoalLocation:
+            if self.Location != self._Hunter._GoalLocation:
                 self._Hunter.SetGoalLocation(self.Location)
+
     #Set our goal location and change our state back to moving - its time to start hoofing it
     def SetGoalLocation(self, Given):
-        self.GoalLocation = Given
+        self._GoalLocation = Given
         self._MoveQueue = []
         self._CurrentState = 1
-        self.PathFindToLocation(Given)
-        #We call our FSM again so we can get moving the same "day" we called whatever action telling us to hoof it...
+        self._PathFindToLocation(Given)
 
     #Function allowing differing functionality between AI - what happens when we can't formulate a plan between goals...
     def UnableToAchieveGoal(self):
-        
-        #This is the reindeer functionality - overloaded over in resident
-        #We just idle I suppose...
-        print(self.Name, " didn't manage to ", self._ActiveGoal.GoalName)
+  
+        try:
+            print(self.Name, " didn't manage to ", self._ActiveGoal.GoalName)
+        except:
+            pass
         self._CurrentState = 0
         self.__FiniteStateMachine()
 
@@ -225,19 +208,23 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
 
 
     #A utility function to fill this AI's move queue with the fastest path as got from the A* algorithm...
-    def PathFindToLocation(self, GivenLocation):
+    def _PathFindToLocation(self, GivenLocation):
         if GivenLocation != self.Location:
                                                                               
             self._MoveQueue = self._AStar(False, self.Location, GivenLocation, self._World)
+    
+            #Back to our FSM again to minimise the time our AI are standing around doing nothing
+            #we do not know needed goals - but that should not be important as we should just be moving this recursion...
+            self.__FiniteStateMachine([])
 
         if self._MoveQueue == False:
             print("Unable to move there!")
-            self.ActionFailed()
+            self._ActionFailed()
 
        
          
     #We did not have the required tags to perform an action, so this gets called....
-    def ActionFailed(self):
+    def _ActionFailed(self):
     
         #If we were moving we 
 

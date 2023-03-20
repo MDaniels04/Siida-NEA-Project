@@ -7,7 +7,7 @@ import random
 #Its like a reindeer but has far more actions available to it....
 
 class Resident(AI.AI):
-    #Overload of entity aloows for option of sprite creation and spawning in the constructor - disabled by default so the 
+    #Overload of entity allows for option of sprite creation and spawning in the constructor - disabled by default so the 
     #If bLoading is true we do not need to spend any time on calculating values for these - they will be given to us...
     def __init__(self, GivenRep, GivenWorld, SpawnLocation, GivenSiida, bLoading = False):
 
@@ -55,13 +55,7 @@ class Resident(AI.AI):
         "WoodSupply": 0
         
         }
-    
-        self.PersonalResource = {
 
-        #For now same food as a reindeer.... dk how likely this is to remain the same...
-        "FoodSupply": 25
-        
-        }
         super().__init__(GivenRep, GivenWorld, SpawnLocation)
 
         self._AvailableActions = self._AvailableActions + [
@@ -86,7 +80,7 @@ class Resident(AI.AI):
                 Action.GoToType([Tag.Tag("AtCoast")], True, self._World.SeaCoords,  "go to a fishing spot", 1),
 
                 #Get the food from a reindeer carcass
-                Action.Get([Tag.Tag("HasFood")], False, "FoodSupply", 250, "gather food from the carcass", 1,[Tag.Tag("KilledPrey")]),
+                Action.Get([Tag.Tag("HasFood")], False, "FoodSupply", 500, "gather food from the carcass", 1,[Tag.Tag("KilledPrey")]),
         
                 #Consider this a "fishing" action
                 Action.Get([Tag.Tag("HasFood")], False, "FoodSupply", 250, "fish", 10000, [Tag.Tag("AtCoast")]),
@@ -95,7 +89,7 @@ class Resident(AI.AI):
                 Action.GoToType([Tag.Tag("AtForest")], True, self._World.ForestCoords, "gather wood from the forest", 1),
 
                 #Chop down some trees at a forest...                                                  We want em to unpack if they can
-                Action.Get([Tag.Tag("LavvuReady")], False, "WoodSupply", 250, "chop down some trees", 500, [Tag.Tag("AtForest")]),
+                Action.Get([Tag.Tag("LavvuReady")], False, "WoodSupply", 10, "chop down some trees", 500, [Tag.Tag("AtForest")]),
 
                 #Build a lavvu
                 Action.BuildLavvu([Tag.Tag("BuiltLavvu")], False, "build a lavvu to rest their weary bones!", 1,  [Tag.Tag("AtBuildSite"), Tag.Tag("LavvuReady")]),
@@ -160,7 +154,7 @@ class Resident(AI.AI):
         #Our exposure increases if we are in a cold place
         #CHANGE ONCE WE GOT IN HUT ACTION...
 
-        TempDiff = self._World.Grid[self.Location[1]][self.Location[0]].GetTemperature(self._World.Weather.GlobalTemperature) + 5
+        TempDiff = self._World._Grid[self.Location[1]][self.Location[0]].GetTemperature(self._World.Weather.GlobalTemperature) + 5
         if TempDiff < 0:
             self.Exposure += abs(TempDiff * 5)
         else:

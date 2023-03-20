@@ -14,9 +14,8 @@ class CellularAutomata():
     def __init__(self, GivenTargetDimensions, DefaultGridFill):
             
         #The grid in which we which to iterate over...
-        self.Grid = []
+        self._Grid = []
             
-        self.GridDims = GivenTargetDimensions
         self.GridDims = GivenTargetDimensions
 
         #Initialise our grid full of our desired initial fill
@@ -24,7 +23,7 @@ class CellularAutomata():
             NewRow = []
             for X in range(GivenTargetDimensions[1]):
                 NewRow.append(DefaultGridFill)
-            self.Grid.append(NewRow)
+            self._Grid.append(NewRow)
 
                 
     #Assign points in the grid to be of correct type
@@ -34,12 +33,12 @@ class CellularAutomata():
         for Y in range(self.GridDims[0]):
             for X in range(self.GridDims[1]):
 
-                if self.Grid[Y][X] == GivenSurroundings:
+                if self._Grid[Y][X] == GivenSurroundings:
 
                     intRand = random.randint(1,100)
 
                     if intRand > 100 - intSpawnChance:
-                        self.Grid[Y][X] = GivenNoise
+                        self._Grid[Y][X] = GivenNoise
 
     #Iterate through our grid and compare it to 
     def _RefineFeature(self, intPasses, givenCell, givenSurroundings, intGivenAdjRule, intGivenAdjNotRule):
@@ -50,7 +49,7 @@ class CellularAutomata():
             #New grid after this pass
             arrNewGrid = []
 
-            for YCount, YValue in enumerate(self.Grid):
+            for YCount, YValue in enumerate(self._Grid):
              
                 #New row in this grid
                 arrNewRow = []
@@ -85,7 +84,7 @@ class CellularAutomata():
                     while bChecked == False: 
                         
                         #If the surrounding cell we are comparing atm is of the given type, we increment our amount of surrounding cells
-                        if self.Grid[SearchY][SearchX] == givenCell:
+                        if self._Grid[SearchY][SearchX] == givenCell:
                             intSurroundingAmount += 1
                         
                         #If we've just looked at something from the end of the row
@@ -117,4 +116,4 @@ class CellularAutomata():
                             arrNewRow.append(XValue)
 
                 arrNewGrid.insert(YCount, arrNewRow)
-            self.Grid = arrNewGrid
+            self._Grid = arrNewGrid

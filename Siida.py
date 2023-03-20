@@ -1,57 +1,43 @@
 '''
-    IMPORTANT MESSAGES
-    
-    This project was a None Examined Assesment for an AQA A level Computer Science course. As such it was developed with the intent to fit the criterea for such projects. It will not be updated any further than release.
+    MESSAGES ABOUT THE CODE
 
-    For unkown reasons, after testing on a secondary device, there were errors with pyglet group constructors - 
-    They were expecting the constructor OrderedGroup([int]) rather than as it is in documentation, and in this code Group(order=[int]). 
-    If you get errors running this code, try changing this in the IMGS.py file.
-
-            ORDER GROUPS
-            0 - MAP
-            1 - STRUCTURES
-            2 - AI
-            3 -  WEATHER ETC.
-            
-    Sometimes stuff overlap, we might need to fix that....
+    Please ensure you have read the Readme.md file in this repository before continuing. Cheers - Morgz <3
+    ------------------------------------------------------------------------------------------------------
+    This code is the code for my AQA A Level computer science NEA project.
+w
+    While the simulation as it is may not do much impressive, I believe the systems implemented give the ability to modularly and easily add more "actions" for the AI to perform.
+    I may add more of these if I have time after exams, but as is the reason the actions are so sparse is because 
 
 '''
 import World as W
 import SaveManager as S
 
-#Handles pyglet initialisation
+#Imports pyglet - our library for graphics etc.
 import pyglet 
 
 import IMGS
 
-#import pdb; pdb.set_trace()
-
-#save stuff
 Saver = S.SaveManager()
 
-#Clear the console so all that save jazz isnt there
+#Clear the console so the text printed for handling saves is not present
 print("\033c", end='')
 
-#REMEMBER MAP DIMS = 800 X 800 (1 TILE = 16X16 SIZE...
-
-#Visible false to begin with so we can add bonus initialisation 
+#Initilaise our window
+#Visible is set to false so we can do some additional initialisation before the window is shown
 MainWindow = pyglet.window.Window(800, 800, caption="Siida Beta", visible=False,style=pyglet.window.Window.WINDOW_STYLE_DIALOG)
 
-"""
-Additional initialisation of our window will take place here!
-"""
-
+#Set the icon to an image of a resident
 MainWindow.set_icon(IMGS.PersonIMG)
+
 MainWindow.set_visible()
 
-#The batch of sprites - liable to change every day...
+#Our sprite batch - all the sprites that are shown each day appear here
 MainBatch = pyglet.graphics.Batch()
 
-#The world
-#Time stuff also handle
+#The world initialised here - handles initialisation of all aspects of the simulation
 World = W.World((50,50), MainBatch, Saver)
 
-#Call the day function every x seconds...
+#Schedule the "day" function to be called every x seconds
 pyglet.clock.schedule_interval(World.Time.Day, 0.1)
 
 @MainWindow.event
@@ -63,5 +49,4 @@ pyglet.app.run()
 
 #Automatically save our world once the app has been closed
 Saver.Save(World)
-
 print("That's all folks!")

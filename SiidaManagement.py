@@ -63,10 +63,11 @@ class Siida():
             self.NeededGoals = pickle.loads(Saver.SaveData[4])
             
             self.ResourcesInStock = {
-                "FoodSupply":Saver.SaveData[5]
+                "FoodSupply":Saver.SaveData[5],
+    
+                "WoodSupply":Saver.SaveData[8]
             }
             
-
             self.LavvuStocked = Saver.SaveData[7]
 
             #Now we need to load up our residents again...
@@ -210,10 +211,10 @@ class Siida():
             self.CryCooldown[1] -= 1
 
         #Sort our needed goal list so the first goals are the ones that need to be addressed first....
-        self.NeededGoals.sort(key=lambda x: x.Priority, reverse=True)
+        self.NeededGoals.sort(key=lambda x: x._Priority, reverse=True)
    
         #Sort our residents ascending by the priority of their current goals so those with the least important goals will get assigned goals first
-        self.SiidaResidents.sort(key=lambda x: x._ActiveGoal.Priority)
+        self.SiidaResidents.sort(key=lambda x: x._ActiveGoal._Priority)
        
 
         #Now we go through our residents and run their daily function..

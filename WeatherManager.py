@@ -33,9 +33,10 @@ class WeatherManager():
 
             for i in Saver.CloudsSaved:
                 #Create a new cloud, set this as the grid, etc...
-                NewCloud = C.Cloud(self, i[3], Saver.ConvertCoordinates(i[1]))
-                NewCloud.Grid = Saver.ConvertGrid(i[2], NewCloud.Grid)       
-                NewCloud.ApplyToMap()
+                NewCloud = C.Cloud(self, i[3])
+                NewCloud.Location = Saver.ConvertCoordinates(i[1])
+                NewCloud._Grid = Saver.ConvertGrid(i[2], NewCloud._Grid)       
+                NewCloud._ApplyToMap()
                 self._CloudsInWorld.append(NewCloud)
 
         

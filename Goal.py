@@ -7,7 +7,7 @@ class Goal():
 
     def __init__(self, GivenPrerequisiteTags, GivenGoalName, GivenPriority = 0):
       self.Prereqs = GivenPrerequisiteTags
-      self.Priority = GivenPriority
+      self._Priority = GivenPriority
 
 
       #Flavour text printed to console when talking about this

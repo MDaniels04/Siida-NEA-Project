@@ -7,6 +7,7 @@ import Tag
 class DesicionMaker():
 
     def __init__(self):
+
         #Collection of the adjacency lists representing the possible paths we could take towards solving an action
         #Dictionary representation of such as this makes accessing it again trhough A* much easier...
         # Adjacency is a list
@@ -119,7 +120,7 @@ class DesicionMaker():
         
         #Our goal object doesn't have a weight attribute so this is an error catch
         if GoalConnect != (1,0):
-            Weight = GivenGoal.Weight
+            Weight = GivenGoal._Weight
            
         #Add the goal to our adjacencies...
         #GivenGoal is the goal itself that we need to do...
@@ -133,10 +134,8 @@ class DesicionMaker():
         ClusterLowerBound = self._Count
 
         self._AddConnections([GoalConnect])
-        
-        #/////
+
         #Get our unmet prerequisite tags for achieving this goal, or any blocked tags we cannot have...
-        #////
 
         #What have we yet to meet?
         UnmetTags = []
@@ -171,16 +170,15 @@ class DesicionMaker():
     
                 #Set our tag location so all our actions have a place to connect to...
                 TagLocation = self._RelativeCoords
-                #Coordinates not working ... :/
 
                 Branch = 0
 
                 for ActionIt in Performer._AvailableActions:
-                    for EffectIt in ActionIt.EffectTags:
+                    for EffectIt in ActionIt._EffectTags:
                         #If this is what we need to solve rn...
                         if EffectIt.TagName == UnmetIt.TagName:
                                         
-                            #Recursion around!    
+                            #Recursion!
                             self._FormPlanningGraph(ActionIt, Performer, TagLocation, Branch)
                             Branch += 1      
                             

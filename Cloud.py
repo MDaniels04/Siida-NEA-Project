@@ -9,7 +9,7 @@ import pyglet.sprite as PS
 class Cloud(CA.CellularAutomata):
 
     #We want all cells that will no longer be covered 
-    def __ApplyToMap(self,Movement = (0,0)):
+    def _ApplyToMap(self,Movement = (0,0)):
 
             self.__CloudSprites.clear()
 
@@ -20,7 +20,7 @@ class Cloud(CA.CellularAutomata):
             NewCells = []
             
             #Iterate through our grid, apply sprites and such to 
-            for iC, iV in enumerate(self.Grid):
+            for iC, iV in enumerate(self._Grid):
                 if TopCoord[0] + iC < self.__WeatherManager._Owner.GridDims[0]:
 
                     for jC, jV in enumerate(iV):
@@ -39,7 +39,7 @@ class Cloud(CA.CellularAutomata):
             #Compare the cells that should be raining now with those that were raining last iteration...
             for Cell in NewCells:         
                 if Cell not in self.__AffectingCells:
-                    CellObj = self.__WeatherManager._Owner.Grid[Cell[1]][Cell[0]]
+                    CellObj = self.__WeatherManager._Owner._Grid[Cell[1]][Cell[0]]
                     CellObj.Precipitating = 1
                     if self.__WeatherManager.GlobalTemperature < 0:
                         CellObj.Precipitating = 2
@@ -84,7 +84,7 @@ class Cloud(CA.CellularAutomata):
         if Age == 0:
             self._AddNoiseToGrid("~", ".", 50)
             self._RefineFeature(1, "~", ".", 5, 6)
-            self.__ApplyToMap()
+            self._ApplyToMap()
                 
     #Cant use destructor cos we cant access variables after its deleted and we need to ensure the sprites are gone!
     def DestroyCloud(self):
@@ -102,7 +102,7 @@ class Cloud(CA.CellularAutomata):
          
         #Reset precipitation for nearby cells...
         for Cell in self.__AffectingCells:
-            CellObj = self.__WeatherManager._Owner.Grid[Cell[1]][Cell[0]]
+            CellObj = self.__WeatherManager._Owner._Grid[Cell[1]][Cell[0]]
             CellObj.Precipitating = 0
 
         if random.randrange(self._CloudAge, 11) == 10:
@@ -118,4 +118,4 @@ class Cloud(CA.CellularAutomata):
             XChange = random.randrange(-5,6)
             YChange = random.randrange(-5,6)
 
-            self.__ApplyToMap((YChange, XChange))
+            self._ApplyToMap((YChange, XChange))

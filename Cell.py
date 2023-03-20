@@ -9,16 +9,15 @@ class Cell(E.Entity):
 
        super().__init__(GivenRep, GivenLocation, GivenBatch, IMGS.Terrain)
 
-         
        #How would this be represented as a character (for the purpose of compressio in saving and loading) 
-       self.ChrRep = GivenChrRep
+       self._ChrRep = GivenChrRep
         
        #Weight is simulated as a measure of difficulty to pass through a cell for one reason or another
        #Lower numbers better!
-       self.Weight = GivenWeight
+       self._Weight = GivenWeight
     
        #A signed amount that being in this cell offsets the temperature by (e.g.: colder in mountains)
-       self.TemperatureModifier = GivenTemperatureModifier
+       self.__TemperatureModifier = GivenTemperatureModifier
 
        #Precipitation in this cell
        # 0 -> It is not precipitating
@@ -37,4 +36,4 @@ class Cell(E.Entity):
 
     #Calculate the temperature in this cell
     def GetTemperature(self, GlobalTemp):
-        return GlobalTemp + (self.Precipitating * -2) + self.TemperatureModifier
+        return GlobalTemp + (self.Precipitating * -2) + self.__TemperatureModifier

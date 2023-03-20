@@ -15,7 +15,8 @@ class SaveManager():
                     SiidaNeededGoals BLOB,
                     FoodStock INTEGER,
                     CloudChance INTEGER,
-                    LavvuStocked INTEGER
+                    LavvuStocked INTEGER,
+                    WoodStock INTEGER
                     
                 ) WITHOUT ROWID;
             """)
@@ -66,16 +67,17 @@ class SaveManager():
                 if GivenSaveName == "NEW":
                     print("Sorry! You can't call a save 'NEW' - this keyword is reserved for making a new save when choosing between existing saves")
                     self.__CreateNewSave()
-                    
-                #Remember this'll be fetched in the format ([Name], ) so we want to take a gander at the 0th item from the fetched tuples
-                for i in SaveNames:         
-                    if GivenSaveName == i[0]:                     
-                        print("Error - that save name already exists! You will have to choose a different one!")
-                        self.__CreateNewSave()
+                else:
 
-                #Reaching this point means we can accept this save name
-                self.SaveName =  GivenSaveName
-                self.SaveController.commit()
+                    #Remember this'll be fetched in the format ([Name], ) so we want to take a gander at the 0th item from the fetched tuples
+                    for i in SaveNames:         
+                        if GivenSaveName == i[0]:                     
+                            print("Error - that save name already exists! You will have to choose a different one!")
+                            self.__CreateNewSave()
+
+                    #Reaching this point means we can accept this save name
+                    self.SaveName =  GivenSaveName
+                    self.SaveController.commit()
 
            
     def __InputSaveChoice(self):
@@ -212,7 +214,7 @@ class SaveManager():
                     Current = None
                     #If this is a grid of cell objects we want their rep char, else itll be just a character and that is fine to represent it...
                     try:
-                        Current = j.ChrRep
+                        Current = j._ChrRep
                     except:
                         Current = j
                     if Last == Current:
@@ -258,13 +260,12 @@ class SaveManager():
                 else:
                     CellRep = i
 
-
             return UnComped
                          
     #Save our simulation - note down the stuff we need
     def Save(self, GivenWorld):
  
-        MapComp = self.ConvertGrid(GivenWorld.Grid)
+        MapComp = self.ConvertGrid(GivenWorld._Grid)
 
         AIToSave = GivenWorld.Siida.SiidaResidents + GivenWorld.Reindeer
         for i in AIToSave:
@@ -285,7 +286,7 @@ class SaveManager():
             except:
                 pass
             
-            GoalLocComp = self.ConvertCoordinates(i.GoalLocation)
+            GoalLocComp = self.ConvertCoordinates(i._GoalLocation)
             LocComp = self.ConvertCoordinates(i.Location)
 
 
@@ -302,7 +303,7 @@ class SaveManager():
             {'Save': self.SaveName, 'State': i._CurrentState, 'ActionQ': PickledAQ, 'Tags': PickledTags, 'ActiveGoal': PickledGoal, 'ActiveAction': PickledAction, 'MoveQ': PickledMoves, 'Hunter': PickledHunter, 'Hunting':PickledHunting, 'GoalLoc':GoalLocComp, 'Loc': LocComp, 'Name': Name})
 
         for i in GivenWorld.Weather._CloudsInWorld:
-            GridComp = self.ConvertGrid(i.Grid)          
+            GridComp = self.ConvertGrid(i._Grid)          
             LocComp = self.ConvertCoordinates(i.Location)
             Age = i._CloudAge
             self.SaveCursor.execute("INSERT INTO Clouds VALUES (:Save, :Location, :Grid, :Age)", {"Save":self.SaveName, "Location":LocComp, "Grid":GridComp, 'Age':Age})  
@@ -318,11 +319,11 @@ class SaveManager():
         if self.SaveCursor.execute("SELECT 1 FROM Saves WHERE EXISTS(SELECT SaveName FROM Saves WHERE SaveName = :Save)", {'Save':self.SaveName}).fetchone():
             self.SaveCursor.execute("""
             UPDATE Saves 
-            SET DayNumber = :Day, Map = :Comp, SiidaLocation = :SiidaLoc, SiidaNeededGoals = :Goals, FoodStock = :Food, CloudChance = :CChance
+            SET DayNumber = :Day, Map = :Comp, SiidaLocation = :SiidaLoc, SiidaNeededGoals = :Goals, FoodStock = :Food, CloudChance = :CChance, LavvuStocked = :LavvuStock, WoodStock = :Wood
             WHERE SaveName = :Save             
-            """, {'Save': self.SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance': GivenWorld.Weather._CumCloudChance})
+            """, {'Save': self.SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance': GivenWorld.Weather._CumCloudChance, 'LavvuStock': GivenWorld.Siida.LavvuStocked, 'Wood': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
         else:
-            self.SaveCursor.execute("INSERT INTO Saves VALUES (:Save, :Day, :Comp, :SiidaLoc, :Goals, :Food, :CChance, :LStock)", {'Save': self.SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance':GivenWorld.Weather._CumCloudChance, 'LStock': GivenWorld.Siida.LavvuStocked})
+            self.SaveCursor.execute("INSERT INTO Saves VALUES (:Save, :Day, :Comp, :SiidaLoc, :Goals, :Food, :CChance, :LStock, :WoodStock)", {'Save': self.SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance':GivenWorld.Weather._CumCloudChance, 'LStock': GivenWorld.Siida.LavvuStocked, 'WoodStock': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
 
         #And that SHOULD be us saved to a file...
         self.SaveController.commit()

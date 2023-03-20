@@ -1,19 +1,16 @@
-#A* kept here as it can be used in both pathfinding and 
-#Dont know if we want to store it here NE way...
+#A* kept here as it can be used in both pathfinding and desicion making
 
-#We store it here just because we can 
 
 import math as m
-
 #Used for confirming that it is of type action...
 import Action as A
 
-#TO DO - ACTION TRAVERSAL!
 
 class AStar():
     
     #Calculate the manhattan distance between the 2 points given - for use in pathfinding heuristics...
     def ManhattanDistance(self, GivenCurrentLocation, GivenGoalLocation):
+
         #We only use 2 dims for our manhattan distance as it is exclusively used for our map pathfinding...
         h = abs(GivenGoalLocation[0] - GivenCurrentLocation[0]) + abs(GivenGoalLocation[1] - GivenCurrentLocation[1])
         return h
@@ -31,10 +28,7 @@ class AStar():
             
         return m.sqrt(Distance)
 
-
-    #OUR NODES ARE COORDINATES!!!
-
-    #The type given indicates whether or not we are iterating thru a grid or a graph - a grid has 4 possible connections, so uses manhattan, a graph has infinite, so uses euclidean
+    #The type given indicates whether or not we are iterating through a grid or a graph - a grid has 4 possible connections, so uses manhattan, a graph has infinite, so uses euclidean
     def __h(self, Type, Current, Goal, ToTraverse):
         if Type == True:
             return self.EuclideanDistance(Current, Goal)
@@ -50,7 +44,6 @@ class AStar():
             #As our adjacencies are kept in arrays of [NodeType, *Coords] all the connections of this node will be the items past the 0th index...            
             for It in ToTraverse[Current][1:]:
                 Neighbours.append(It)
-
 
         #Return coords of the adjacent grid cells based on where we are now...
         else:            
@@ -79,7 +72,7 @@ class AStar():
         #Grid 
         else:
             #Use the tuple pieces in the list
-            W = ToTraverse.Grid[Current[0]][Current[1]].Weight
+            W = ToTraverse._Grid[Current[0]][Current[1]]._Weight
             return W
     
     def __AddToActionPath(self, Thing, Path):
@@ -117,7 +110,7 @@ class AStar():
                 Path.insert(0, Current) 
 
                 #But not technically a "stack"
-                #Im not sure what counts to get marks to be completely honest with you, so I might just say I have stacks and hope that 
+                #Im not sure what counts to get marks to be completely honest with you, so I might just say I have stacks and hope that it flies... 
 
         return Path
  

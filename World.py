@@ -23,7 +23,7 @@ class World(CA.CellularAutomata):
     
         #We trust that we will have handed popping of old sprites before hand...
 
-        for i in self.Grid:
+        for i in self._Grid:
             for j in i:
                 j.Spawn((StartY, StartX))
                 self.MapSprites.append(j._Sprite)
@@ -35,18 +35,18 @@ class World(CA.CellularAutomata):
                 #As double digits of AI could have the task of searching for a certain type of cell, then discerning the closest, then constructing a pathfinding route to that, I decided to streamline the process a little by filling an array with coordinates of types of cell
                 #AI may want to pathfind to. Its not the most efficient right now, but it will save time in thbe long run - trust me, w/o this we had a half-second delay or so from when the day should fire if this happened en mass...                
 
-                if j.Weight != 10000:
+                if j._Weight != 10000:
 
                     self.LandCoords.append((StartY, StartX))
 
                     #We also fill lists of types of cells for easier identification - for example, rather than having an algorithm searching for tiles, we simply fill the lists, then have them iterated through and 
-                    if j.Weight == 1:
+                    if j._Weight == 1:
                         self.ForestCoords.append((StartY, StartX)) 
                     
-                    elif j.Weight == 2:
+                    elif j._Weight == 2:
                         self.HillCoords.append((StartY, StartX))
 
-                    elif j.Weight == 50:
+                    elif j._Weight == 50:
                         self.MountainCoords.append((StartY, StartX))
                     else:
       
@@ -122,7 +122,7 @@ class World(CA.CellularAutomata):
             
             #Get our uncompressed map, add it on...
 
-            self.Grid =  Saver.ConvertGrid(Saver.SaveData[2], self.Grid, S = SeaCell, L = LandCell, H = HillCell, F = ForestCell, M = MountainCell,)
+            self._Grid =  Saver.ConvertGrid(Saver.SaveData[2], self._Grid, S = SeaCell, L = LandCell, H = HillCell, F = ForestCell, M = MountainCell,)
             
             self.Weather.CumCloudChance = Saver.SaveData[6]            
 
@@ -181,7 +181,7 @@ class World(CA.CellularAutomata):
             '''     
 
         #The siida constructor itself will handle if we need to load data or create new stuff
-        self.Siida = SM.Siida(10, 5, self, Saver)
+        self.Siida = SM.Siida(1, 5, self, Saver)
 
     #The world's daily function :)
     def DailyFunction(self):

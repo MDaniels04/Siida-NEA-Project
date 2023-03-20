@@ -25,3 +25,8 @@ class Reindeer(AI.AI):
         ]
 
         
+
+    #Overload to remove from the world's reindeer list
+    def Death(self):
+        self._World.Reindeer.remove(self)
+        super().Death()
