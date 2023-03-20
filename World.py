@@ -181,7 +181,7 @@ class World(CA.CellularAutomata):
             '''     
 
         #The siida constructor itself will handle if we need to load data or create new stuff
-        self.Siida = SM.Siida(1, 5, self, Saver)
+        self.Siida = SM.Siida(10, 5, self, Saver)
 
     #The world's daily function :)
     def DailyFunction(self):

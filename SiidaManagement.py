@@ -87,8 +87,10 @@ class Siida():
                 OldResident.Hunter = pickle.loads(i[7])
                 OldResident.Hunting = pickle.loads(i[8])
                 OldResident.GoalLocation = Saver.ConvertCoordinates(i[9])
+                
                 #Dont need to set location, already handled that gubbins
                 OldResident.Name = i[11]
+                OldResident.Hunger = i[12]
 
                 self.SiidaResidents.append(OldResident)      
         else:
@@ -139,14 +141,6 @@ class Siida():
     #The function run every day, checking the stats of the siida and assigning goals if the problem arises....
     def DailyFunction(self):
 
-       # self.SiidaResidents[0].Death("Debug!")
-       # self.SiidaResidents.pop(0)
-
-
-        #if len(self.SiidaResidents) < 1:
-            #print("Everyone died! Simulation Over!")
-            #PC.unschedule(self.World.Time.Day)
-            
 
         #Look into migrating
         DayOfYear = self.World.Time.DayNumber % 365
@@ -182,11 +176,7 @@ class Siida():
                 for j in range(len(self.Lavvu)):
                     self.NeededGoals.append(Goal.Goal([Tag.Tag("BuiltLavvu")], " pack up lavvus to migrate", 5))
 
-        #When to remove...
 
-        #Update of food levels...
-   
-        self.ResourcesInStock["FoodSupply"] -= (len(self.SiidaResidents) * 5)
 
         #Now we address any goals that need passing out....
          

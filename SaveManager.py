@@ -39,6 +39,7 @@ class SaveManager():
                     GoalLoc INTEGER,
                     Loc INTEGER,
                     Name TEXT,
+                    Hunger INTEGER,
 
                     FOREIGN KEY(Save) REFERENCES Saves(SaveName)
             );
@@ -295,12 +296,13 @@ class SaveManager():
             #This is what discerns our AI - between residents and reindeer - 
             try:
                 Name = i.Name
+                Hunger = i.Hunger
             except:
                 pass
             
             self.SaveCursor.execute("""
             INSERT INTO AIs VALUES(:Save,  :State, :ActionQ, :Tags, :ActiveGoal, :ActiveAction, :MoveQ, :Hunter, :Hunting, :GoalLoc, :Loc, :Name)""", 
-            {'Save': self.SaveName, 'State': i._CurrentState, 'ActionQ': PickledAQ, 'Tags': PickledTags, 'ActiveGoal': PickledGoal, 'ActiveAction': PickledAction, 'MoveQ': PickledMoves, 'Hunter': PickledHunter, 'Hunting':PickledHunting, 'GoalLoc':GoalLocComp, 'Loc': LocComp, 'Name': Name})
+            {'Save': self.SaveName, 'State': i._CurrentState, 'ActionQ': PickledAQ, 'Tags': PickledTags, 'ActiveGoal': PickledGoal, 'ActiveAction': PickledAction, 'MoveQ': PickledMoves, 'Hunter': PickledHunter, 'Hunting':PickledHunting, 'GoalLoc':GoalLocComp, 'Loc': LocComp, 'Name': Name, 'Hunger': Hunger})
 
         for i in GivenWorld.Weather._CloudsInWorld:
             GridComp = self.ConvertGrid(i._Grid)          
