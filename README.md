@@ -3,9 +3,6 @@
 <p>---------------------------------------------------------------------------------------------------</p>
 This is a project done for the AQA Computer Science A Level None Examined Assesment (NEA). 
 
-This code is the code for my AQA A Level computer science NEA project.
 
 While the simulation as it is may not do much impressive, I believe the systems implemented give the ability to modularly and easily add more "actions" for the AI to perform.
 I may add more of these if I have time after exams, but I am very limited on time, as is the reason why the actions are so sparse.
-
-
