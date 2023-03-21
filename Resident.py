@@ -114,7 +114,7 @@ class Resident(AI.AI):
         print(self.Name, " has died due to ", Reason)
 
         #If we were working to fulfill a goal, then we want it to go back on to the needed goals to allow others to do it!
-        if self._ActiveGoal != None and self._ActiveGoal.Priority > 0:
+        if self._ActiveGoal != None and self._ActiveGoal._Priority > 0:
             self.Siida.NeededGoals.append(self._ActiveGoal)
 
 

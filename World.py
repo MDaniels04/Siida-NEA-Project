@@ -151,8 +151,8 @@ class World(CA.CellularAutomata):
         else:
 
             #Land on sea
-            self._AddNoiseToGrid(LandCell, SeaCell, 45)
-            self._RefineFeature(9, LandCell, SeaCell, 4,5)
+            self._AddNoiseToGrid(LandCell, SeaCell, 35)
+            self._RefineFeature(5, LandCell, SeaCell, 4,4)
 
 
             #Hills on land
@@ -171,8 +171,8 @@ class World(CA.CellularAutomata):
             self.AddSelfToBatch()
         
             #Randomly spawn some reindeer...
-            for i in range(1,7):
-                self.Reindeer.append(Reindeer.Reindeer(IMGS.ReindeerIMG, self, self.LandCoords[random.randrange(0, len(self.LandCoords))]))
+            #for i in range(1,7):
+                #self.Reindeer.append(Reindeer.Reindeer(IMGS.ReindeerIMG, self, self.LandCoords[random.randrange(0, len(self.LandCoords))]))
         
             '''
 
@@ -181,7 +181,7 @@ class World(CA.CellularAutomata):
             '''     
 
         #The siida constructor itself will handle if we need to load data or create new stuff
-        self.Siida = SM.Siida(10, 5, self, Saver)
+        #self.Siida = SM.Siida(10, 5, self, Saver)
 
     #The world's daily function :)
     def DailyFunction(self):

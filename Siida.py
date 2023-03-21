@@ -4,9 +4,9 @@
     Please ensure you have read the Readme.md file in this repository before continuing. Cheers - Morgz <3
     ------------------------------------------------------------------------------------------------------
     This code is the code for my AQA A Level computer science NEA project.
-w
+
     While the simulation as it is may not do much impressive, I believe the systems implemented give the ability to modularly and easily add more "actions" for the AI to perform.
-    I may add more of these if I have time after exams, but as is the reason the actions are so sparse is because 
+    I may add more of these if I have time after exams, but this depends on other projects throughout the summer.
 
 '''
 import World as W
@@ -16,7 +16,6 @@ import SaveManager as S
 import pyglet 
 
 import IMGS
-
 Saver = S.SaveManager()
 
 #Clear the console so the text printed for handling saves is not present
@@ -38,7 +37,7 @@ MainBatch = pyglet.graphics.Batch()
 World = W.World((50,50), MainBatch, Saver)
 
 #Schedule the "day" function to be called every x seconds
-pyglet.clock.schedule_interval(World.Time.Day, 0.1)
+pyglet.clock.schedule_interval(World.Time.Day, 10)
 
 @MainWindow.event
 def on_draw():
