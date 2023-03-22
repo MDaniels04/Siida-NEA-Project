@@ -188,7 +188,9 @@ class Wander(GoTo):
 
 
     def PerformAction(self, Performer):
-       
+   
+
+
         try:
             self._GoTo = Performer.Siida.GetLocationInSiida()
 

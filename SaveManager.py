@@ -301,7 +301,7 @@ class SaveManager():
                 pass
             
             self.SaveCursor.execute("""
-            INSERT INTO AIs VALUES(:Save,  :State, :ActionQ, :Tags, :ActiveGoal, :ActiveAction, :MoveQ, :Hunter, :Hunting, :GoalLoc, :Loc, :Name)""", 
+            INSERT INTO AIs VALUES(:Save,  :State, :ActionQ, :Tags, :ActiveGoal, :ActiveAction, :MoveQ, :Hunter, :Hunting, :GoalLoc, :Loc, :Name, :Hunger)""", 
             {'Save': self.SaveName, 'State': i._CurrentState, 'ActionQ': PickledAQ, 'Tags': PickledTags, 'ActiveGoal': PickledGoal, 'ActiveAction': PickledAction, 'MoveQ': PickledMoves, 'Hunter': PickledHunter, 'Hunting':PickledHunting, 'GoalLoc':GoalLocComp, 'Loc': LocComp, 'Name': Name, 'Hunger': Hunger})
 
         for i in GivenWorld.Weather._CloudsInWorld:

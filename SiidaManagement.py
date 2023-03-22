@@ -174,6 +174,7 @@ class Siida():
                 #This should automatically be removed when they place the huts...
 
                 for j in range(len(self.Lavvu)):
+                    pass 
                     self.NeededGoals.append(Goal.Goal([Tag.Tag("BuiltLavvu")], " pack up lavvus to migrate", 5))
 
 
@@ -186,7 +187,7 @@ class Siida():
             print("Food's running low!")
             self.CryCooldown[0] += 50
                                                                    #When quantity stuff is repaired, add a quantity of food that will satisfy the crowd for 2 weeks [SUBJECT TO CHANGE W/ BALANCE]
-            self.NeededGoals.append(Goal.Goal([Tag.Tag("Deposited"), Tag.Tag("HasFood")], "get some food", 10))
+            #self.NeededGoals.append(Goal.Goal([Tag.Tag("Deposited"), Tag.Tag("HasFood")], "get some food", 10))
         elif self.CryCooldown[0] > 0:
             self.CryCooldown[0] -= 1
 
@@ -209,7 +210,6 @@ class Siida():
 
         #Now we go through our residents and run their daily function..
         for ResIt in self.SiidaResidents:
-
             #Take down our food 
             ResIt.DailyFunction(self.NeededGoals)
 

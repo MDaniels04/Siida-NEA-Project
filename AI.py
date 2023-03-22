@@ -109,9 +109,8 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
                self.AssignNewGoal(NeededGoals[0])
                self.Siida.TakeGoal()
             else:
-                    pass
                     #Else wander
-                    self.AssignNewGoal(Goal.Goal([Tag.Tag("Wander")], " pass the time"))
+                    self.AssignNewGoal(Goal.Goal([Tag.Tag("Wander")], " pass the time", 999))
         
         #MOVING STATE - We have been given a move queue and are ready to follow it...
         elif self._CurrentState == 1:
@@ -212,6 +211,9 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         if GivenLocation != self.Location:
                                                                               
             self._MoveQueue = self._AStar(False, self.Location, GivenLocation, self._World)
+
+            #TESTING TEMP
+            print(self._MoveQueue)
     
             #Back to our FSM again to minimise the time our AI are standing around doing nothing
             #we do not know needed goals - but that should not be important as we should just be moving this recursion...

@@ -161,18 +161,17 @@ class Resident(AI.AI):
             self.Exposure = 0
 
         if self.Exposure >= 100:
-            #Temporarily disabled this...
             self.Death("overexposure to the cold!")
-    
         else:
             FoodDiff = self.Siida.ResourcesInStock["FoodSupply"] - 5
             if FoodDiff >= 0:
                 self.Siida.ResourcesInStock["FoodSupply"] - 5
+                self.Hunger = 0
             else:
                 self.Siida.ResourcesInStock["FoodSupply"] = 0
                 self.Hunger += FoodDiff * 5
 
-                if self.Hunger >= 100:
-                    self.Death("starvation!")
-
-            super().DailyFunction(NeededGoals)
+            if self.Hunger >= 100:
+                self.Death("starvation!")
+            else:
+                super().DailyFunction(NeededGoals)
