@@ -110,7 +110,7 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
                self.Siida.TakeGoal()
             else:
                     #Else wander
-                    self.AssignNewGoal(Goal.Goal([Tag.Tag("Wander")], " pass the time", 999))
+                    self.AssignNewGoal(Goal.Goal([Tag.Tag("Wander")], " pass the time"))
         
         #MOVING STATE - We have been given a move queue and are ready to follow it...
         elif self._CurrentState == 1:
@@ -211,10 +211,7 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         if GivenLocation != self.Location:
                                                                               
             self._MoveQueue = self._AStar(False, self.Location, GivenLocation, self._World)
-
-            #TESTING TEMP
-            print(self._MoveQueue)
-    
+   
             #Back to our FSM again to minimise the time our AI are standing around doing nothing
             #we do not know needed goals - but that should not be important as we should just be moving this recursion...
             self.__FiniteStateMachine([])
@@ -231,7 +228,7 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         #If we were moving we 
 
         #Failing an action will make us less likely to do it in the future...
-        self._AvailableActions[self._AvailableActions.index(self._ActiveAction)].Weight += 5
+        self._AvailableActions[self._AvailableActions.index(self._ActiveAction)]._Weight += self._ActiveAction._FailureWeightOffset
 
         #We now want to replan if we can
         self.AssignNewGoal(self._ActiveGoal)

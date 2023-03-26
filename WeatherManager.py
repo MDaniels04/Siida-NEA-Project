@@ -48,11 +48,8 @@ class WeatherManager():
 
         #Temperature fluctuation to make it slightly more random
         Fluct =  random.randrange(1,6)       
-        Temp = round(((-20 * math.cos(2 * math.pi * DayNumber) / 365) + self.__TempOffset + Fluct), 0)
-                                                                     #Change 365 to year length when we add leap years!
-        self.GlobalTemperature =  round(Temp, 1)
-        
-      
+        self.GlobalTemperature = round(((-20 * math.cos((2 * math.pi * DayNumber) / 365)) + self.__TempOffset + Fluct), 0)
+                                                                             
     #Function ran every "day"
     def DailyFunction(self):
 

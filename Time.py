@@ -33,9 +33,13 @@ class TimeManager():
     def Day(self, Delta):
         self.DayNumber += 1
         print("----------------------------------------------------------------")
+
+
+        
         
         #What day of the year is this?
         DayOfYear = self.DayNumber % 365        
+
         if len(self.__World.Siida.SiidaResidents) < 1:
            PC.unschedule(self.Day)
            print("E V E R Y O N E I S D E A D")
@@ -53,6 +57,7 @@ class TimeManager():
             print("Year number - ", (self.DayNumber // 365) + 1, "Day number - ", DayOfYear)
             print("Total days - ", self.DayNumber)
             print("Today it is ", self.__World.Weather.GlobalTemperature, " degrees!")
+
 
         #We now need to update the cells - dont worry its not hard      
                         

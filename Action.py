@@ -24,6 +24,10 @@ class Action(Goal.Goal):
         self._RemovesAdditionalTags = GivenRemovesTags
         self._Weight = GivenWeight
 
+        #MORGZ FINISH THIS HERE
+        #How much weight will failing this action add to the 
+        self._FailureWeightOffset = 5
+
         #Can this action be repeated or not (If it is finite, tags will be appended upon completion, else they will not)
         self._bFinite = True
 
@@ -40,7 +44,7 @@ class Action(Goal.Goal):
         except:
             pass   
 
-        Performer.ActionFailed()
+        Performer._ActionFailed()
 
 
     #Do the thing actually detailed in the action....
@@ -55,7 +59,6 @@ class Action(Goal.Goal):
             for ActiveIt in Performer._ActiveTags:
                 if ActiveIt.TagName == PrereqIt.TagName:
                     bFound = True
-
             #Performer didn't have the necessary tags
             if bFound == False:
                     self.ActionFailed(Performer, "they didn't have the right tags!")
@@ -188,12 +191,8 @@ class Wander(GoTo):
 
 
     def PerformAction(self, Performer):
-   
-
-
         try:
             self._GoTo = Performer.Siida.GetLocationInSiida()
-
         except:
            
             #Go to a random land coordinate
@@ -237,6 +236,7 @@ class Find(Action):
     def __init__(self, GivenEffectTags, Interruptable, GivenSearchList, GivenGoalName = "", GivenWeight = 1, GivenPrerequisiteTags = []):
         super().__init__(GivenEffectTags, Interruptable, GivenGoalName, GivenWeight, GivenPrerequisiteTags)
         self.SearchList  = GivenSearchList
+        self._FailureWeightOffset = 500
 
     def PerformAction(self, Performer):
         super().PerformAction(Performer)

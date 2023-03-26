@@ -110,24 +110,24 @@ class DesicionMaker():
         return LinkPoints
                 
     #Function for taking our goal and available actions, and drawing a set of adjacency lists for pathfinding through to discern a plan of action for our AI
-    def _FormPlanningGraph(self, GivenGoal, Performer, GoalConnect = (1,0), Branch = 0):
+    def _FormPlanningGraph(self, GivenGoal, Performer, GoalConnect = (1,0), GivenBranch = 0):
         
-        try:
-            self.Name = self.Name
-        except:
-            pass
         Weight = 0
         
         #Our goal object doesn't have a weight attribute so this is an error catch
         if GoalConnect != (1,0):
             Weight = GivenGoal._Weight
+
+        #DEBUG CHANGE
+        else:
+            pass
            
         #Add the goal to our adjacencies...
         #GivenGoal is the goal itself that we need to do...
         #Branch is the given "branch of the graph we are on" - which will change which axis we move the relative coords on
         #Goal connect is the connections we want to make - in this case, just the node behind us
         
-        self._AddNode(GivenGoal, Branch, [GoalConnect], Weight) 
+        self._AddNode(GivenGoal, GivenBranch, [GoalConnect], Weight) 
         self._Count += 1
     
         #Cluster lower bound necessary for discerning between which end points a tag should connect to...
@@ -154,6 +154,7 @@ class DesicionMaker():
         #If this action is not performable at this time
         if len(UnmetTags) > 0:
             for UnmetIt in UnmetTags:   
+                Branch = GivenBranch
                 LinkPoints = []
                 for EndIt in self._EndPoints:
                     #If we drew this 
@@ -161,8 +162,9 @@ class DesicionMaker():
                         LinkPoints.append(EndIt[0])
                         self._EndPoints.remove(EndIt)
                     
-                #Ensure we link with the action calling this 
-                LinkPoints.append(self._RelativeCoords)
+                #Ensure we link with the action calling this if we aren't already doing so
+                if self._RelativeCoords not in LinkPoints:
+                    LinkPoints.append(self._RelativeCoords)
                 self._AddNode(UnmetIt, Branch, LinkPoints, 1)
                 self._AddConnections(LinkPoints)
 
@@ -170,8 +172,6 @@ class DesicionMaker():
     
                 #Set our tag location so all our actions have a place to connect to...
                 TagLocation = self._RelativeCoords
-
-                Branch = 0
 
                 for ActionIt in Performer._AvailableActions:
                     for EffectIt in ActionIt._EffectTags:

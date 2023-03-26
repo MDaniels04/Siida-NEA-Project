@@ -171,8 +171,8 @@ class World(CA.CellularAutomata):
             self.AddSelfToBatch()
         
             #Randomly spawn some reindeer...
-            #for i in range(1,7):
-                #self.Reindeer.append(Reindeer.Reindeer(IMGS.ReindeerIMG, self, self.LandCoords[random.randrange(0, len(self.LandCoords))]))
+            for i in range(1,7):
+                self.Reindeer.append(Reindeer.Reindeer(IMGS.ReindeerIMG, self, self.LandCoords[random.randrange(0, len(self.LandCoords))]))
         
             '''
 

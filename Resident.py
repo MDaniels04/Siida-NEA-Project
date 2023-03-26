@@ -64,7 +64,7 @@ class Resident(AI.AI):
                 Action.Find([Tag.Tag("FoundPrey")], True, self._World.Reindeer, "Look for a reindeer to hunt"),
 
                 #Track what we have found...
-                Action.Hunt([Tag.Tag("KilledPrey")], True, "Hunt their prey", 100, [Tag.Tag("FoundPrey")]),
+                Action.Hunt([Tag.Tag("KilledPrey")], True, "Hunt their prey", 1, [Tag.Tag("FoundPrey")]),
 
                 #In preperation for migration pack up a lavvu
                 Action.Find([Tag.Tag("FoundLavvu")], True, self.Siida.Lavvu, "find a lavvu to pack up in preperation for migration"),
@@ -83,7 +83,7 @@ class Resident(AI.AI):
                 Action.Get([Tag.Tag("HasFood")], False, "FoodSupply", 500, "gather food from the carcass", 1,[Tag.Tag("KilledPrey")]),
         
                 #Consider this a "fishing" action
-                Action.Get([Tag.Tag("HasFood")], False, "FoodSupply", 250, "fish", 10000, [Tag.Tag("AtCoast")]),
+                Action.Get([Tag.Tag("HasFood")], False, "FoodSupply", 250, "fish", 100, [Tag.Tag("AtCoast")]),
 
                 #Go to a forest to get some wood!
                 Action.GoToType([Tag.Tag("AtForest")], True, self._World.ForestCoords, "gather wood from the forest", 1),
@@ -152,26 +152,28 @@ class Resident(AI.AI):
     def DailyFunction(self, NeededGoals = []):
         
         #Our exposure increases if we are in a cold place
-        #CHANGE ONCE WE GOT IN HUT ACTION...
 
-        TempDiff = self._World._Grid[self.Location[1]][self.Location[0]].GetTemperature(self._World.Weather.GlobalTemperature) + 5
+        #Debug temperature difference to prevent us from dying from the cold!
+        TempDiff = self._World._Grid[self.Location[1]][self.Location[0]].GetTemperature(self._World.Weather.GlobalTemperature) + 50000
         if TempDiff < 0:
             self.Exposure += abs(TempDiff * 5)
         else:
             self.Exposure = 0
 
         if self.Exposure >= 100:
-            self.Death("overexposure to the cold!")
+            #self.Death("overexposure to the cold!")
+            pass
         else:
             FoodDiff = self.Siida.ResourcesInStock["FoodSupply"] - 5
             if FoodDiff >= 0:
-                self.Siida.ResourcesInStock["FoodSupply"] - 5
+                self.Siida.ResourcesInStock["FoodSupply"] -= 5
                 self.Hunger = 0
             else:
                 self.Siida.ResourcesInStock["FoodSupply"] = 0
-                self.Hunger += FoodDiff * 5
+                self.Hunger += FoodDiff 
 
             if self.Hunger >= 100:
                 self.Death("starvation!")
+                pass
             else:
                 super().DailyFunction(NeededGoals)
