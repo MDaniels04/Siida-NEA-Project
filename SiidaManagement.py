@@ -165,7 +165,7 @@ class Siida():
         if bMigrationStart:
             self.bMigrationStart = False
             if len(self.Lavvu) > 0:
-        
+     
                 #Give all residents the ability to do this...
                 for i in self.SiidaResidents:
                                             #When a resident is "migrating" they can pack up lavvu rather than going to make...
@@ -174,7 +174,6 @@ class Siida():
 
                 for j in range(len(self.Lavvu)):
                     self.NeededGoals.append(Goal.Goal([Tag.Tag("BuiltLavvu")], " pack up lavvus to migrate", 5))
-
 
 
         #Now we address any goals that need passing out....

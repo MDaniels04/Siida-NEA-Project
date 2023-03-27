@@ -6,7 +6,7 @@ class SaveManager():
 
     #Called before the world is created - makes the tables if they don't already exist...
     def __CreateDatabaseTables(self):
-            self.SaveCursor.execute("""
+            self.__SaveCursor.execute("""
                 CREATE TABLE IF NOT EXISTS Saves(
                     SaveName TEXT NOT NULL PRIMARY KEY,
                     DayNumber INTEGER, 
@@ -24,7 +24,7 @@ class SaveManager():
                 #We also wont have a residents table, so we create that too.
 
             #We dont need a primary key - we can just use ROWID
-            self.SaveCursor.execute("""
+            self.__SaveCursor.execute("""
                 CREATE TABLE IF NOT EXISTS AIs(
 
                     Save TEXT NOT NULL,
@@ -45,7 +45,7 @@ class SaveManager():
             );
             """)
 
-            self.SaveCursor.execute("""
+            self.__SaveCursor.execute("""
                 CREATE TABLE IF NOT EXISTS Clouds(
                     Save TEXT NOT NULL,
                     CloudLocation INTEGER NOT NULL,
@@ -56,13 +56,13 @@ class SaveManager():
                 );
             """)
 
-            self.SaveController.commit()
+            self.__SaveController.commit()
 
     #Called before the world is created - so all the info is filled later on - this just handles ettling on a save name and prepping db for that when we want to save...
     def __CreateNewSave(self):        
 
                 #Get our existing saves 
-                SaveNames = self.SaveCursor.execute("SELECT SaveName FROM Saves").fetchall()      
+                SaveNames = self.__SaveCursor.execute("SELECT SaveName FROM Saves").fetchall()      
                 GivenSaveName = input("Please enter the name for your new save ")
 
                 if GivenSaveName == "NEW":
@@ -77,8 +77,8 @@ class SaveManager():
                             self.__CreateNewSave()
 
                     #Reaching this point means we can accept this save name
-                    self.SaveName =  GivenSaveName
-                    self.SaveController.commit()
+                    self.__SaveName =  GivenSaveName
+                    self.__SaveController.commit()
 
            
     def __InputSaveChoice(self):
@@ -92,42 +92,42 @@ class SaveManager():
             else:
                 
                 #Check that the given name actually exists...         
-                self.SaveData = self.SaveCursor.execute("""
+                self.SaveData = self.__SaveCursor.execute("""
                     SELECT * FROM Saves WHERE SaveName = :Name         
                 """, {'Name':Choice}).fetchone()
 
                 if self.SaveData != None:
               
                     #Get all AI not including residents...
-                    self.AIData = self.SaveCursor.execute("""
+                    self.AIData = self.__SaveCursor.execute("""
                     SELECT * FROM AIs WHERE Save = :SaveName AND Name IS NULL
                     """, { 'SaveName':Choice}).fetchall()
 
                     #And now the residents...
-                    self.ResidentData = self.SaveCursor.execute("""
+                    self.ResidentData = self.__SaveCursor.execute("""
                     SELECT * FROM AIs WHERE Save = :SaveName AND Name IS NOT NULL
                     """, { 'SaveName':Choice}).fetchall()
         
                     #Get our existing clouds
-                    self.CloudsSaved = self.SaveCursor.execute("""
+                    self.CloudsSaved = self.__SaveCursor.execute("""
                     SELECT * FROM Clouds WHERE Save = :SaveName
                     """, {'SaveName':Choice}).fetchall()
 
                     #We also want to delete all the AI loaded as ALL of their stats are very likely to have changed by the time of next save, and in addition we have nothing to point each opbject in the game to the entity in the database it points to
                     #while we could use stuff like name and location these have potential to be the same and then everything goes wrong.
-                    self.SaveCursor.execute("""
+                    self.__SaveCursor.execute("""
                     DELETE FROM AIs WHERE Save = :SaveName
                     """, {'SaveName':Choice})
 
 
                     #Same thing for clouds - all the stuff will have changed and they might not even exist anymore...
-                    self.SaveCursor.execute("""
+                    self.__SaveCursor.execute("""
                     DELETE FROM Clouds WHERE Save = :SaveName
                     """, {'SaveName':Choice})
 
 
-                    self.SaveName = Choice
-                    print("Loading ", self.SaveName)
+                    self.__SaveName = Choice
+                    print("Loading ", self.__SaveName)
 
                     self.bFileToLoad = True
                 else:
@@ -143,8 +143,8 @@ class SaveManager():
     
         #Controller of the save file...
         #A good thing abt SQLite is that it will auto error validate the file - creating then connecting if this file doesn't exists
-        self.SaveController = sqlite3.connect("Saves.db")
-        self.SaveCursor = self.SaveController.cursor()
+        self.__SaveController = sqlite3.connect("Saves.db")
+        self.__SaveCursor = self.__SaveController.cursor()
 
         #Data read from save file about their respective tables...
         self.SaveData = None
@@ -154,7 +154,7 @@ class SaveManager():
         self.CloudsSaved = None
 
         #Save name that refers to the simulation we are running this time...
-        self.SaveName = ""
+        self.__SaveName = ""
 
         #Is there a file we should load?
         self.bFileToLoad = False
@@ -164,7 +164,7 @@ class SaveManager():
         self.__CreateDatabaseTables()
 
         #Query save file to see if we can find any existing saves
-        Saves = self.SaveCursor.execute("""
+        Saves = self.__SaveCursor.execute("""
                 SELECT SaveName, DayNumber FROM Saves
             """).fetchall()
 
@@ -175,7 +175,7 @@ class SaveManager():
         else:
             print("We found some saves!")
 
-            self.AverageDayNumber = self.SaveCursor.execute("SELECT AVG(DayNumber) FROM Saves").fetchone()
+            self.AverageDayNumber = self.__SaveCursor.execute("SELECT AVG(DayNumber) FROM Saves").fetchone()
             print("Average save day number = ", self.AverageDayNumber[0])
             print("--------")
 
@@ -300,15 +300,15 @@ class SaveManager():
             except:
                 pass
             
-            self.SaveCursor.execute("""
+            self.__SaveCursor.execute("""
             INSERT INTO AIs VALUES(:Save,  :State, :ActionQ, :Tags, :ActiveGoal, :ActiveAction, :MoveQ, :Hunter, :Hunting, :GoalLoc, :Loc, :Name, :Hunger)""", 
-            {'Save': self.SaveName, 'State': i._CurrentState, 'ActionQ': PickledAQ, 'Tags': PickledTags, 'ActiveGoal': PickledGoal, 'ActiveAction': PickledAction, 'MoveQ': PickledMoves, 'Hunter': PickledHunter, 'Hunting':PickledHunting, 'GoalLoc':GoalLocComp, 'Loc': LocComp, 'Name': Name, 'Hunger': Hunger})
+            {'Save': self.__SaveName, 'State': i._CurrentState, 'ActionQ': PickledAQ, 'Tags': PickledTags, 'ActiveGoal': PickledGoal, 'ActiveAction': PickledAction, 'MoveQ': PickledMoves, 'Hunter': PickledHunter, 'Hunting':PickledHunting, 'GoalLoc':GoalLocComp, 'Loc': LocComp, 'Name': Name, 'Hunger': Hunger})
 
         for i in GivenWorld.Weather._CloudsInWorld:
             GridComp = self.ConvertGrid(i._Grid)          
             LocComp = self.ConvertCoordinates(i.Location)
             Age = i._CloudAge
-            self.SaveCursor.execute("INSERT INTO Clouds VALUES (:Save, :Location, :Grid, :Age)", {"Save":self.SaveName, "Location":LocComp, "Grid":GridComp, 'Age':Age})  
+            self.__SaveCursor.execute("INSERT INTO Clouds VALUES (:Save, :Location, :Grid, :Age)", {"Save":self.__SaveName, "Location":LocComp, "Grid":GridComp, 'Age':Age})  
 
 
         #No need to do the injection protection here...                                                                            
@@ -318,16 +318,16 @@ class SaveManager():
         PickleGoals = pickle.dumps(GivenWorld.Siida.NeededGoals)
 
         #If this already exists
-        if self.SaveCursor.execute("SELECT 1 FROM Saves WHERE EXISTS(SELECT SaveName FROM Saves WHERE SaveName = :Save)", {'Save':self.SaveName}).fetchone():
-            self.SaveCursor.execute("""
+        if self.__SaveCursor.execute("SELECT 1 FROM Saves WHERE EXISTS(SELECT SaveName FROM Saves WHERE SaveName = :Save)", {'Save':self.__SaveName}).fetchone():
+            self.__SaveCursor.execute("""
             UPDATE Saves 
             SET DayNumber = :Day, Map = :Comp, SiidaLocation = :SiidaLoc, SiidaNeededGoals = :Goals, FoodStock = :Food, CloudChance = :CChance, LavvuStocked = :LavvuStock, WoodStock = :Wood
             WHERE SaveName = :Save             
-            """, {'Save': self.SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance': GivenWorld.Weather._CumCloudChance, 'LavvuStock': GivenWorld.Siida.LavvuStocked, 'Wood': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
+            """, {'Save': self.__SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance': GivenWorld.Weather._CumCloudChance, 'LavvuStock': GivenWorld.Siida.LavvuStocked, 'Wood': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
         else:
-            self.SaveCursor.execute("INSERT INTO Saves VALUES (:Save, :Day, :Comp, :SiidaLoc, :Goals, :Food, :CChance, :LStock, :WoodStock)", {'Save': self.SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance':GivenWorld.Weather._CumCloudChance, 'LStock': GivenWorld.Siida.LavvuStocked, 'WoodStock': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
+            self.__SaveCursor.execute("INSERT INTO Saves VALUES (:Save, :Day, :Comp, :SiidaLoc, :Goals, :Food, :CChance, :LStock, :WoodStock)", {'Save': self.__SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance':GivenWorld.Weather._CumCloudChance, 'LStock': GivenWorld.Siida.LavvuStocked, 'WoodStock': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
 
         #And that SHOULD be us saved to a file...
-        self.SaveController.commit()
+        self.__SaveController.commit()
         print("Simulation saved!")
 

@@ -83,7 +83,7 @@ class Resident(AI.AI):
                 Action.Get([Tag.Tag("HasFood")], False, "FoodSupply", 500, "gather food from the carcass", 1,[Tag.Tag("KilledPrey")]),
         
                 #Consider this a "fishing" action
-                Action.Get([Tag.Tag("HasFood")], False, "FoodSupply", 250, "fish", 100, [Tag.Tag("AtCoast")]),
+                Action.Get([Tag.Tag("HasFood")], False, "FoodSupply", 250, "fish", 1, [Tag.Tag("AtCoast")]),
 
                 #Go to a forest to get some wood!
                 Action.GoToType([Tag.Tag("AtForest")], True, self._World.ForestCoords, "gather wood from the forest", 1),

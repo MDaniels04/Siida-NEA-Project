@@ -14,11 +14,6 @@ class Reindeer(AI.AI):
         
         super().__init__(GivenRep, GivenWorld, GivenLocation)
 
-        self.PersonalResource = {
-        
-        "FoodSupply":25
-
-        }        
 
         self._AvailableActions = self._AvailableActions + [
 
