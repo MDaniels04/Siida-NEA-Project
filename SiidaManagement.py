@@ -6,6 +6,7 @@ import Goal
 import Tag
 import pickle
 import pyglet.clock as PC
+import Hut
 
 #Siida management manages the residents in our Siida - essentially assigning goals to them
 
@@ -92,7 +93,12 @@ class Siida():
                 OldResident.Name = i[11]
                 OldResident.Hunger = i[12]
 
-                self.SiidaResidents.append(OldResident)      
+                self.SiidaResidents.append(OldResident)  
+
+
+            for i in Saver.LavvuData:
+        
+                self.Lavvu.append(Hut.Lavvu(IMGS.LavvuIMG, Saver.ConvertCoordinates(i[0]), self.World.DrawBatch))    
         else:
 
             #Here we are specifying a coord to be taken as the current centre of the Siida -

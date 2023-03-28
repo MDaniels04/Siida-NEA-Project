@@ -105,6 +105,7 @@ class Cloud(CA.CellularAutomata):
             CellObj = self.__WeatherManager._Owner._Grid[Cell[1]][Cell[0]]
             CellObj.Precipitating = 0
 
+                                            #Up to 11 as this is lower <= x < higher
         if random.randrange(self._CloudAge, 11) == 10:
             self.DestroyCloud()
         else:

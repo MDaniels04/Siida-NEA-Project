@@ -71,7 +71,6 @@ class WeatherManager():
         #Else we dont even touch our cumulative cloud chance...
         if len(self._CloudsInWorld) < 4:
 
-            #Randrange is not inclusive for the upper bound, apparently 
             Chance = random.randrange(self._CumCloudChance, 15)
 
             if Chance == 14:

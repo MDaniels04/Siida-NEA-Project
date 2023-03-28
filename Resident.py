@@ -154,14 +154,14 @@ class Resident(AI.AI):
         #Our exposure increases if we are in a cold place
 
         #Debug temperature difference to prevent us from dying from the cold!
-        TempDiff = self._World._Grid[self.Location[1]][self.Location[0]].GetTemperature(self._World.Weather.GlobalTemperature) + 50000
+        TempDiff = self._World._Grid[self.Location[1]][self.Location[0]].GetTemperature(self._World.Weather.GlobalTemperature) + 20
         if TempDiff < 0:
             self.Exposure += abs(TempDiff * 5)
         else:
             self.Exposure = 0
 
         if self.Exposure >= 100:
-            #self.Death("overexposure to the cold!")
+            self.Death("overexposure to the cold!")
             pass
         else:
             FoodDiff = self.Siida.ResourcesInStock["FoodSupply"] - 5

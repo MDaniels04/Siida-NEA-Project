@@ -55,6 +55,14 @@ class SaveManager():
                     FOREIGN KEY(Save) REFERENCES Saves(SaveName)
                 );
             """)
+            self.__SaveCursor.execute("""
+                CREATE TABLE IF NOT EXISTS Lavvu(
+                    Save TEXT NOT NULL,
+                    Loc INTEGER,
+
+                    FOREIGN KEY(Save) REFERENCES Saves(SaveName)
+                );
+            """)
 
             self.__SaveController.commit()
 
@@ -112,6 +120,11 @@ class SaveManager():
                     self.CloudsSaved = self.__SaveCursor.execute("""
                     SELECT * FROM Clouds WHERE Save = :SaveName
                     """, {'SaveName':Choice}).fetchall()
+    
+                    self.LavvuData = self.__SaveCursor.execute("""
+                    SELECT Loc FROM Lavvu WHERE Save = :SaveName
+                    """, {'SaveName':Choice}).fetchall()
+
 
                     #We also want to delete all the AI loaded as ALL of their stats are very likely to have changed by the time of next save, and in addition we have nothing to point each opbject in the game to the entity in the database it points to
                     #while we could use stuff like name and location these have potential to be the same and then everything goes wrong.
@@ -150,6 +163,7 @@ class SaveManager():
         self.SaveData = None
         self.AIData = None
         self.ResidentData = None
+        self.LavvuData = None
 
         self.CloudsSaved = None
 
@@ -327,6 +341,51 @@ class SaveManager():
         else:
             self.__SaveCursor.execute("INSERT INTO Saves VALUES (:Save, :Day, :Comp, :SiidaLoc, :Goals, :Food, :CChance, :LStock, :WoodStock)", {'Save': self.__SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance':GivenWorld.Weather._CumCloudChance, 'LStock': GivenWorld.Siida.LavvuStocked, 'WoodStock': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
 
+
+        #And now for our lavvu
+        #Iterating through the lavvu that exist in the table and the ones in the world - if exists in both simply update the location
+        #If not existing in table add it
+        #If not existing in lavvu in world remove it from the table
+
+        #Get our lavvu saved
+        LavvuInTable = self.__SaveCursor.execute("SELECT rowid, Loc FROM Lavvu WHERE Save = :GivenSave", {'GivenSave':self.__SaveName}).fetchall()
+
+        #If we have more lavvu saved then existing, pop the difference from the table. 
+        LengthDiff = len(LavvuInTable) - len(GivenWorld.Siida.Lavvu)
+        if LengthDiff > 0:
+                #kick it out of the table!
+                self.__SaveCursor.execute("""
+                DELTE TOP(:Diff)
+                FROM Lavvu
+                """, {'Diff':LengthDiff})
+        
+        for i in GivenWorld.Siida.Lavvu:
+            bFound = False
+            for j in LavvuInTable:
+        
+                if self.ConvertCoordinates(i.Location) == j[1]:        
+                    bFound = True
+
+                    #Remove this from our lavvu saved list so we do not use it again for others
+                    LavvuInTable.remove(j)
+
+            #If we couldn't find our lavvu location, we want to update - but only if there are the same number of records in the world and in the table - so we will add new till the difference is 0
+            if bFound == False:
+
+                if LengthDiff < 0:
+                    LengthDiff += 1
+                    self.__SaveCursor.execute("""INSERT INTO Lavvu VALUES(:SaveName, :Location)""", {'SaveName': self.__SaveName, 'Location': self.ConvertCoordinates(i.Location)})
+
+                #else if we now have the same number of records update where the top location from the 
+                else:
+                    self.__SaveCursor.execute("""
+                    UPDATE Lavvu
+                    SET Loc = :NewLoc
+                    WHERE rowid = :GivenID  """, {'NewLoc': self.ConvertCoordinates(i.Location), 'GivenID': LavvuInTable[0][0]})
+                    LavvuInTable.pop(0)
+
+        #HOPEFULLY that has worked...
+        
         #And that SHOULD be us saved to a file...
         self.__SaveController.commit()
         print("Simulation saved!")
