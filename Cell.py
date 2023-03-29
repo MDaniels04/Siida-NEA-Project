@@ -25,8 +25,6 @@ class Cell(E.Entity):
        # 2 -> It is snowing
        self.Precipitating = 0
 
-       #Keeping track of the entities currently in this cell - including structures...
-       self.EntitiesInCell = []
        self.ResourcesInCell = {
 
             "FoodSupply":0,
