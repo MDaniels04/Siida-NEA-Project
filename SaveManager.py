@@ -50,7 +50,7 @@ class SaveManager():
                     Save TEXT NOT NULL,
                     CloudLocation INTEGER NOT NULL,
                     CloudGrid TEXT NOT NULL,
-                    _CloudAge INTEGER NOT NULL,
+                    CloudAge INTEGER NOT NULL,
     
                     FOREIGN KEY(Save) REFERENCES Saves(SaveName)
                 );
@@ -288,8 +288,8 @@ class SaveManager():
             #Get all the variables we would otherwise need
             
             PickledAQ = pickle.dumps(i._GetActionQueue())        
-            PickledTags = pickle.dumps(i._GetActiveTags)
-            PickledGoal = pickle.dumps(i.__ActiveGoal)
+            PickledTags = pickle.dumps(i._GetActiveTags())
+            PickledGoal = pickle.dumps(i._GetActiveGoal())
             PickledAction = pickle.dumps(i._GetActiveAction())
             PickledMoves = pickle.dumps(i._GetMoveQueue())
             PickledHunter = pickle.dumps(i._Hunter)
@@ -302,7 +302,7 @@ class SaveManager():
                 pass
             
             GoalLocComp = self.ConvertCoordinates(i._GetGoalLocation())
-            LocComp = self.ConvertCoordinates(i.Location)
+            LocComp = self.ConvertCoordinates(i._GetLocation())
 
 
             Name = None
@@ -320,8 +320,8 @@ class SaveManager():
 
         for i in GivenWorld._Weather._CloudsInWorld:
             GridComp = self.ConvertGrid(i._Grid)          
-            LocComp = self.ConvertCoordinates(i.Location)
-            Age = i._CloudAge
+            LocComp = self.ConvertCoordinates(i._GetLocation())
+            Age = i._GetCloudAge()
             self.__SaveCursor.execute("INSERT INTO Clouds VALUES (:Save, :Location, :Grid, :Age)", {"Save":self.__SaveName, "Location":LocComp, "Grid":GridComp, 'Age':Age})  
 
 
@@ -363,7 +363,7 @@ class SaveManager():
             bFound = False
             for j in LavvuInTable:
         
-                if self.ConvertCoordinates(i.Location) == j[1]:        
+                if self.ConvertCoordinates(i._GetLocation()) == j[1]:        
                     bFound = True
 
                     #Remove this from our lavvu saved list so we do not use it again for others
@@ -374,14 +374,14 @@ class SaveManager():
 
                 if LengthDiff < 0:
                     LengthDiff += 1
-                    self.__SaveCursor.execute("""INSERT INTO Lavvu VALUES(:SaveName, :Location)""", {'SaveName': self.__SaveName, 'Location': self.ConvertCoordinates(i.Location)})
+                    self.__SaveCursor.execute("""INSERT INTO Lavvu VALUES(:SaveName, :Location)""", {'SaveName': self.__SaveName, 'Location': self.ConvertCoordinates(i._GetLocation())})
 
                 #else if we now have the same number of records update where the top location from the 
                 else:
                     self.__SaveCursor.execute("""
                     UPDATE Lavvu
                     SET Loc = :NewLoc
-                    WHERE rowid = :GivenID  """, {'NewLoc': self.ConvertCoordinates(i.Location), 'GivenID': LavvuInTable[0][0]})
+                    WHERE rowid = :GivenID  """, {'NewLoc': self.ConvertCoordinates(i._GetLocation()), 'GivenID': LavvuInTable[0][0]})
                     LavvuInTable.pop(0)
 
         #HOPEFULLY that has worked...

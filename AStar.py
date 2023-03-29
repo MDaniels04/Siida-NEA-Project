@@ -51,14 +51,14 @@ class AStar():
 
                 Neighbours.append((Current[0] -1, Current[1]))
         
-             if Current[0] < len(ToTraverse[0]) -1:
+             if Current[0] < len(ToTraverse._Grid[0]) -1:
                 
                 Neighbours.append((Current[0] + 1, Current[1]))
         
              if Current[1] > 0:
                 Neighbours.append((Current[0], Current[1] - 1))
 
-             if Current[1] < len(ToTraverse) -1:
+             if Current[1] < len(ToTraverse._Grid) -1:
                 Neighbours.append((Current[0], Current[1] + 1))
         return Neighbours
 

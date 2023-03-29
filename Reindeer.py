@@ -14,6 +14,6 @@ class Reindeer(AI.AI):
         super().__init__(GivenRep, GivenWorld, GivenLocation)
  
     #Overload to remove from the world's reindeer list
-    def Death(self):
+    def _Death(self):
         self._GetWorld().Reindeer.remove(self)
-        super().Death()
+        super()._Death()

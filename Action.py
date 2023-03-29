@@ -15,8 +15,8 @@ class Action(Goal.Goal):
     #Given weight <- The weight assigned to completing this action
     #Giveb prerequisite tags <- The tags we want AI to have before being able to do this action
     #Given removes tags <- Tags in addition to this action's prerequisites completing it will remove
-    def __init__(self, GivenEffectTags, Interruptable, Given_GoalName, GivenWeight = 1,  GivenPrerequisiteTags = [], GivenRemovesTags = []):
-        super().__init__(GivenPrerequisiteTags, Given_GoalName)
+    def __init__(self, GivenEffectTags, Interruptable, GivenGoalName, GivenWeight = 1,  GivenPrerequisiteTags = [], GivenRemovesTags = []):
+        super().__init__(GivenPrerequisiteTags, GivenGoalName)
 
 
         self._bInterruptable = Interruptable    
@@ -38,7 +38,7 @@ class Action(Goal.Goal):
         
         try:
             #Print this "flavour text"
-            print(Performer.Name, " wasn't able to ", self._GoalName, Reason if Reason != None else " - something went wrong!")   
+            print(Performer.Name, " wasn't able to ", self._GetGoalName(), Reason if Reason != None else " - something went wrong!")   
 
         #If they don't have a name (i.e.: aren't a resident) this will throw an except - in which case we dont want any flavour text  
         except:
@@ -54,7 +54,7 @@ class Action(Goal.Goal):
         Performer._SetActiveAction(self)
 
         #Check we have the necessary tags to perform this action. If we do not we need to plan for this goal again, as something has gone wrong :(
-        for PrereqIt in self._Prereqs:
+        for PrereqIt in self._GetPrereqs():
             bFound = False
             for ActiveIt in Performer._GetActiveTags():
                 if ActiveIt.TagName == PrereqIt.TagName:
@@ -65,7 +65,7 @@ class Action(Goal.Goal):
             else:
                 #We only want to print info for residents as the console will likely be cluttered enough as it is...
                 try:
-                    print(Performer.Name, " is going to ", self._GoalName, "!")
+                    print(Performer.Name, " is going to ", self._GetGoalName(), "!")
                 except:
                     pass
 
@@ -85,7 +85,7 @@ class Action(Goal.Goal):
                     Performer._SetActiveTags(Performer._GetActiveTags() + [TagIt])
 
             #Remove the tags we should remove by doing this
-            for PrereqIt in self._Prereqs:
+            for PrereqIt in self._GetPrereqs():
                 for ActiveIt in Performer._GetActiveTags():
                     if PrereqIt.TagName == ActiveIt.TagName:
                         Performer._GetActiveTags().remove(ActiveIt)
@@ -104,8 +104,8 @@ class Get(Action):
     #[Prerequisites not mentioned are as they were for the base]    
     #GivenResourceName <- the resource we will be affecting
     #GivenAmount <- the amount of that resource we will get
-    def __init__(self, GivenEffectTags, Interruptable, GivenResourceName, GivenAmount, Given_GoalName = "", GivenWeight = 1, GivenPrerequisiteTags = []):
-        super().__init__(GivenEffectTags, Interruptable, Given_GoalName, GivenWeight, GivenPrerequisiteTags)
+    def __init__(self, GivenEffectTags, Interruptable, GivenResourceName, GivenAmount, GivenGoalName = "", GivenWeight = 1, GivenPrerequisiteTags = []):
+        super().__init__(GivenEffectTags, Interruptable, GivenGoalName, GivenWeight, GivenPrerequisiteTags)
 
         #The name in resource dictionaries of the resource we are getting
         self.__ResourceName = GivenResourceName
@@ -123,8 +123,8 @@ class Get(Action):
 class GoTo(Action):
 
      #[Parameters are as for the base action]
-     def __init__(self, GivenEffectTags, Interruptable, Given_GoalName = "", GivenWeight = 1, GivenPrerequisiteTags = [], GivenRemovesTags = []):
-        super().__init__(GivenEffectTags, Interruptable, Given_GoalName, GivenWeight, GivenPrerequisiteTags, GivenRemovesTags)
+     def __init__(self, GivenEffectTags, Interruptable, GivenGoalName = "", GivenWeight = 1, GivenPrerequisiteTags = [], GivenRemovesTags = []):
+        super().__init__(GivenEffectTags, Interruptable, GivenGoalName, GivenWeight, GivenPrerequisiteTags, GivenRemovesTags)
 
         #Where do we want to go?
         #Initilaised to 0,0 - it should always changed in child overloads
@@ -163,8 +163,8 @@ class GoToType(GoTo):
     #Init overload allows us to also be passed a search list!
     #[Other parameters as with before]
     #Given search list <- the list of coordinates of typesz of cell we want to be able to pathfind to one of
-    def __init__(self, GivenEffectTags, Interruptable, GivenSearchList, Given_GoalName = "", GivenWeight = 1, GivenPrerequisiteTags = []):
-        super().__init__(GivenEffectTags, Interruptable, Given_GoalName, GivenWeight, GivenPrerequisiteTags)
+    def __init__(self, GivenEffectTags, Interruptable, GivenSearchList, GivenGoalName = "", GivenWeight = 1, GivenPrerequisiteTags = []):
+        super().__init__(GivenEffectTags, Interruptable, GivenGoalName, GivenWeight, GivenPrerequisiteTags)
         self.__SearchList = GivenSearchList
 
     #Determine the closest in the given search list then go to it!
@@ -175,7 +175,7 @@ class GoToType(GoTo):
         for i in self.__SearchList:
             
             #We *could* factor the path to get there but in the interest of not spending years of processing time, we shall not
-            Dist = Performer._ManhattanDistance(Performer.Location, i)       
+            Dist = Performer._ManhattanDistance(Performer._GetLocation(), i)       
             if Dist < ClosestDistance:
                 self._GoTo = i
                 ClosestDistance = Dist
@@ -187,8 +187,8 @@ class GoToType(GoTo):
 #WANDER action - Go to a random place around a point - the Siida centre if this is a resident, or where they are now if not. [Our idle action]
 class Wander(GoTo):
 
-    def __init__(self, GivenEffectTags, Interruptable, Given_GoalName = "", GivenWeight = 1, GivenPrerequisiteTags = [], GivenRemovesTags = []):
-        super().__init__(GivenEffectTags, Interruptable, Given_GoalName, GivenWeight, GivenPrerequisiteTags, GivenRemovesTags)
+    def __init__(self, GivenEffectTags, Interruptable, GivenGoalName = "", GivenWeight = 1, GivenPrerequisiteTags = [], GivenRemovesTags = []):
+        super().__init__(GivenEffectTags, Interruptable, GivenGoalName, GivenWeight, GivenPrerequisiteTags, GivenRemovesTags)
         self._bFinite = False
 
 
@@ -208,7 +208,7 @@ class Wander(GoTo):
 class Hunt(GoTo):
 
     def _PerformAction(self, Performer):
-       self._GoTo = Performer.Found.Location
+       self._GoTo = Performer.Found._GetLocation()
        super()._PerformAction(Performer)
        
        #Action complete handeled when our action queue is empty
@@ -218,10 +218,10 @@ class Hunt(GoTo):
 
         try:
             #When we have finished moving to where we thought the reindeer was - if we are close enough, we will "kill" it - if not we can consider that it has escaped us...
-            if Performer._ManhattanDistance(Performer.Found.Location, Performer.Location) < 2:
+            if Performer._ManhattanDistance(Performer.Found._GetLocation(), Performer._GetLocation()) < 2:
          
                 #Consider this us having caught and killed the thing we were hunting
-                Performer.Found.Death()
+                Performer.Found._Death()
                 Performer.Found = None
                 super()._ActionComplete(Performer)
 
@@ -235,8 +235,8 @@ class Hunt(GoTo):
 #Again utilising a search list rather than iterating through the world in an attempt to find stuff
 class Find(Action):       
     
-    def __init__(self, GivenEffectTags, Interruptable, Given__SearchList, Given_GoalName = "", GivenWeight = 1, GivenPrerequisiteTags = []):
-        super().__init__(GivenEffectTags, Interruptable, Given_GoalName, GivenWeight, GivenPrerequisiteTags)
+    def __init__(self, GivenEffectTags, Interruptable, Given__SearchList, GivenGoalName = "", GivenWeight = 1, GivenPrerequisiteTags = []):
+        super().__init__(GivenEffectTags, Interruptable, GivenGoalName, GivenWeight, GivenPrerequisiteTags)
         self.__SearchList  = Given__SearchList
         self._FailureWeightOffset = 500
 
@@ -250,7 +250,7 @@ class Find(Action):
         Closest = None
         ClosestDist = 999
         for i in self.__SearchList:
-            D = Performer._ManhattanDistance(Performer.Location, i.Location)
+            D = Performer._ManhattanDistance(Performer._GetLocation(), i._GetLocation())
             #If we can see a reindeer close enough..
             if   D < ClosestDist and i._Hunter == None:  
                 try:
@@ -276,7 +276,7 @@ class PackLavvu(Hunt):
     #Difference between this and stock is rather than kill it, we will put it in stock (and THEN kill it)
     def _ActionComplete(self, Performer):
         Performer._Siida.Lavvu.remove(Performer.Found)
-        Performer.Found.Death()
+        Performer.Found._Death()
         Performer._Siida.LavvuStocked += 1
         super()._ActionComplete(Performer)
         
@@ -303,7 +303,7 @@ class BuildLavvu(Action):
         super()._PerformAction(Performer)
 
         #Plonk down a hut! [Assuming we are in the right location to do so!
-        Performer._Siida.Lavvu.append(Hut.Lavvu(IMGS.LavvuIMG, Performer.Location, Performer._Batch))
+        Performer._Siida.Lavvu.append(Hut.Lavvu(IMGS.LavvuIMG, Performer._GetLocation(), Performer._GetBatch()))
     
         if Performer._Siida.LavvuStocked > 0:
             Performer._Siida.LavvuStocked -= 1

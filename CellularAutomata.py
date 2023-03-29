@@ -15,9 +15,7 @@ class CellularAutomata():
             
         #The grid in which we which to iterate over...
         self._Grid = []
-            
-        self.GridDims = GivenTargetDimensions
-
+           
         #Initialise our grid full of our desired initial fill
         for Y in range(GivenTargetDimensions[0]):
             NewRow = []
@@ -30,8 +28,8 @@ class CellularAutomata():
     def _AddNoiseToGrid(self, GivenNoise, GivenSurroundings, intSpawnChance):
         random.seed()
 
-        for Y in range(self.GridDims[0]):
-            for X in range(self.GridDims[1]):
+        for Y in range(len(self._Grid)):
+            for X in range(len(self._Grid[0])):
 
                 if self._Grid[Y][X] == GivenSurroundings:
 
@@ -88,10 +86,10 @@ class CellularAutomata():
                             intSurroundingAmount += 1
                         
                         #If we've just looked at something from the end of the row
-                        if SearchX > XCount or SearchX > self.GridDims[1] -2:
+                        if SearchX > XCount or SearchX > len(self._Grid[0]) -2:
                             
                             #If we've just looked at something from the last
-                            if SearchY > YCount or SearchY > self.GridDims[0] -2:
+                            if SearchY > YCount or SearchY > len(self._Grid) -2:
                             
                                 bChecked = True
                             else:

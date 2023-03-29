@@ -86,13 +86,13 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         #Should only be calling this block of code if we are residents, so we do not need to worry bout error checking vars for both AI
         if len(NeededGoals) > 0:
             bRequiredGoals = True
-            if NeededGoals[0]._Priority > self.__ActiveGoal._Priority:
+            if NeededGoals[0]._GetPriority() > self.__ActiveGoal._GetPriority():
 
                 #Try incase our active action is none (i.e.: we aren't doing anything)
                 try:
                                                  #A 0 priority goal is essentially a time filler - wandering - or pausing - something not worth other AI picking up...                               
                     if self.__ActiveAction._bInterruptable == True:
-                        if self.__ActiveGoal._Priority > 0: 
+                        if self.__ActiveGoal._GetPriority() > 0: 
                             self._Siida.NeededGoals.append(self.__ActiveGoal)
                         self.__AssignNewGoal(NeededGoals[0])
                         self._Siida.TakeGoal()
@@ -118,7 +118,7 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         elif self.__CurrentState == 1:
     
                     if len(self.__MoveQueue) > 0:
-                        self.SetSpriteLocation(self.__MoveQueue[0])
+                        self._SetSpriteLocation(self.__MoveQueue[0])
                         self.__MoveQueue.pop(0)
                     else: 
                         self.__StateChangeAfterMovement()
@@ -150,8 +150,8 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         #If anyone is hunting us, and we move, we need to update where the hunter is going to
         #Try incase this is a none type
         if self._Hunter != None:
-            if self.Location != self._Hunter.__GoalLocation:
-                self._Hunter._SetGoalLocation(self.Location)
+            if self._GetLocation() != self._Hunter.__GoalLocation:
+                self._Hunter._SetGoalLocation(self._GetLocation())
 
     #Set our goal location and change our state back to moving - its time to start hoofing it
     def _SetGoalLocation(self, Given):
@@ -164,7 +164,7 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
     def __UnableToAchieveGoal(self):
  
         try:
-            print(self.Name, " didn't manage to ", self.__ActiveGoal._GoalName)
+            print(self.Name, " didn't manage to ", self.__ActiveGoal._GetGoalName())
         except:
             pass
 
@@ -184,7 +184,7 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         self._FormPlanningGraph(GivenGoal, self)
         #After we have iterated through our whole thing we want to add a final empty node we can class as our start node... 
         FinalEnds = []
-        for EndIt in self._EndPoints:
+        for EndIt in self._GetEndPoints():
                 FinalEnds.append(EndIt[0])
 
         #Put a node on (0,0) - the closest to 0,0 will be the branch that has 
@@ -193,12 +193,12 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         self._AddConnections(FinalEnds)
 
         #A* through it to find our best course of action!
-        self.__ActionQueue = self._AStar(True, list(self._Adjacencies)[-1], (1,0), self._Adjacencies)  
+        self.__ActionQueue = self._AStar(True, list(self._GetAdjacencies())[-1], (1,0), self._GetAdjacencies())  
         
         #Reset desicion making variables... 
-        self._EndPoints = []
-        self._Adjacencies = {}
-        self._RelativeCoords = (0,0)
+        self._SetEndPoints([])
+        self._SetAdjacencies({})
+        self._SetRelativeCoords((0,0))
         self._Count = 0
 
         if self.__ActionQueue == False or len(self.__ActionQueue) < 1:
@@ -210,9 +210,9 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
 
     #A utility function to fill this AI's move queue with the fastest path as got from the A* algorithm...
     def __PathFindToLocation(self, GivenLocation):
-        if GivenLocation != self.Location:
+        if GivenLocation != self._GetLocation():
                                                                               
-            self.__MoveQueue = self._AStar(False, self.Location, GivenLocation, self.__World)
+            self.__MoveQueue = self._AStar(False, self._GetLocation(), GivenLocation, self.__World)
    
             #Back to our FSM again to minimise the time our AI are standing around doing nothing
             #we do not know needed goals - but that should not be important as we should just be moving this recursion...
@@ -280,4 +280,4 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         self.__ActiveAction = Given
 
     def _GetMoveQueue(self):
-        return self.____MoveQueue
+        return self.__MoveQueue

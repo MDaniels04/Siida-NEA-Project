@@ -25,7 +25,7 @@ class World(CA.CellularAutomata):
 
         for i in self._Grid:
             for j in i:
-                j.Spawn((StartY, StartX))
+                j._Spawn((StartY, StartX))
                 self.__MapSprites.append(j._Sprite)
                 #self.__MapSprites.append(j)
 

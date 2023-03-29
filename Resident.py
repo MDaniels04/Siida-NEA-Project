@@ -95,26 +95,26 @@ class Resident(AI.AI):
                 Action.BuildLavvu([Tag.Tag("BuiltLavvu")], False, "build a lavvu to rest their weary bones!", 1,  [Tag.Tag("AtBuildSite"), Tag.Tag("Deposited"), Tag.Tag("LavvuReady")]),
 
                 #Go to a location in _Siida
-                Action.GoToInSiida([Tag.Tag("AtBuildSite")], True, "find a place in the _Siida to build!", 1),
+                Action.GoToInSiida([Tag.Tag("AtBuildSite")], True, "find a place in the Siida to build!", 1),
 
                 #future morgan, implement this action here - problems come from not checking that goals tags are still met - if we performa ctions we r assuming we have tags....
-                Action.Deposit([Tag.Tag("Deposited")], False, "drop off the food at the _Siida", 1, [Tag.Tag("At_SiidaCentre")])
+                Action.Deposit([Tag.Tag("Deposited")], False, "drop off the food at the Siida", 1, [Tag.Tag("At_SiidaCentre")])
            
             ])
     
-    #Resident's version of death will take any goals we were undertaking and pop them back into the _Siida's needed goal's list...
-    def Death(self, Reason):
+    #Resident's version of _Death will take any goals we were undertaking and pop them back into the _Siida's needed goal's list...
+    def _Death(self, Reason):
 
         #Flavour text to better understand
         print(self.Name, " has died due to ", Reason)
 
         #If we were working to fulfill a goal, then we want it to go back on to the needed goals to allow others to do it!
-        if self._GetActiveGoal() != None and self._GetActiveGoal()._Priority > 0:
+        if self._GetActiveGoal() != None and self._GetActiveGoal()._GetPriority() > 0:
             self._Siida.NeededGoals.append(self._GetActiveGoal())
 
 
         self._Siida._SiidaResidents.remove(self)
-        super().Death()
+        super()._Death()
 
     #Overload of daily function to check for temperature...
     def _DailyFunction(self, NeededGoals = []):
@@ -122,14 +122,14 @@ class Resident(AI.AI):
         #Our exposure increases if we are in a cold place
 
         #Debug temperature difference to prevent us from dying from the cold!
-        TempDiff = self._GetWorld()._Grid[self.Location[1]][self.Location[0]]._GetTemperature(self._GetWorld()._Weather.GlobalTemperature) + 50000
+        TempDiff = self._GetWorld()._Grid[self._GetLocation()[1]][self._GetLocation()[0]]._GetTemperature(self._GetWorld()._Weather.GlobalTemperature) + 50000
         if TempDiff < 0:
             self.Exposure += abs(TempDiff * 5)
         else:
             self.Exposure = 0
 
         if self.Exposure >= 100:
-            self.Death("overexposure to the cold!")
+            self._Death("overexposure to the cold!")
             pass
         else:
             FoodDiff = self._Siida.ResourcesInStock["FoodSupply"] - 5
@@ -141,7 +141,7 @@ class Resident(AI.AI):
                 self.Hunger += FoodDiff 
 
             if self.Hunger >= 100:
-                self.Death("starvation!")
+                self._Death("starvation!")
                 pass
             else:
                 super()._DailyFunction(NeededGoals)

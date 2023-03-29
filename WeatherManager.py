@@ -34,7 +34,7 @@ class WeatherManager():
             for i in Saver.CloudsSaved:
                 #Create a new cloud, set this as the grid, etc...
                 NewCloud = C.Cloud(self, i[3])
-                NewCloud.Location = Saver.ConvertCoordinates(i[1])
+                NewCloud._SetLocation(Saver.ConvertCoordinates(i[1]))
                 NewCloud._Grid = Saver.ConvertGrid(i[2], NewCloud._Grid)       
                 NewCloud._ApplyToMap()
                 self._CloudsInWorld.append(NewCloud)
@@ -62,7 +62,7 @@ class WeatherManager():
         #Firstly we update existing clouds by telling them to degenerate..
     
         for Cloud in self._CloudsInWorld:
-            Cloud.Degenerate()
+            Cloud._Degenerate()
         
         #Chance to spawn a cloud, if not increase cumultaive  chance
         
