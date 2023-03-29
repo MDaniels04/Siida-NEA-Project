@@ -5,12 +5,12 @@ import pyglet.clock as PC
 
 class TimeManager():
     
-    def __init__(self, Given__World):
+    def __init__(self, GivenWorld):
         #What day number is this? (cumulative from the start of the simulation)
         self.DayNumber = 0
     
         #Passed in here as the world we want to affect on a day to day basis...
-        self.__World = Given__World
+        self.___World = GivenWorld
 
         #Flavour text explaining more about today - is it a special sami holiday? Is there any information in particular we wish to begin
         self.__DayDictionary = {
@@ -40,7 +40,7 @@ class TimeManager():
         #What day of the year is this?
         DayOfYear = self.DayNumber % 365        
 
-        if len(self.__World.Siida.SiidaResidents) < 1:
+        if len(self.___World.Siida.SiidaResidents) < 1:
            PC.unschedule(self.Day)
            print("E V E R Y O N E I S D E A D")
            print("---------------------------")
@@ -52,11 +52,11 @@ class TimeManager():
             print(self.__DayDictionary.get(DayOfYear, self.__DefaultDayDictionary[DayOfYear % 4]))
             
             #All the AI Stuff
-            self.__World.DailyFunction()
+            self.___World._DailyFunction()
             print("----------------------------------------------------------------")
             print("Year number - ", (self.DayNumber // 365) + 1, "Day number - ", DayOfYear)
             print("Total days - ", self.DayNumber)
-            print("Today it is ", self.__World.Weather.GlobalTemperature, " degrees!")
+            print("Today it is ", self.___World._Weather.GlobalTemperature, " degrees!")
 
 
         #We now need to update the cells - dont worry its not hard      
@@ -69,7 +69,7 @@ class TimeManager():
         #The highest priority ones will supercede any others...
 
         #IF there are problems that need addressing
-       #if len(self.__World.Siida.Problems) > 0:
+       #if len(self.___World.Siida.Problems) > 0:
         
 
         #For wild animals its a lot less set in stone - 

@@ -229,7 +229,7 @@ class SaveManager():
                     Current = None
                     #If this is a grid of cell objects we want their rep char, else itll be just a character and that is fine to represent it...
                     try:
-                        Current = j._ChrRep
+                        Current = j._GetChrRep()
                     except:
                         Current = j
                     if Last == Current:
@@ -282,16 +282,16 @@ class SaveManager():
  
         MapComp = self.ConvertGrid(GivenWorld._Grid)
 
-        AIToSave = GivenWorld.Siida.SiidaResidents + GivenWorld.Reindeer
+        AIToSave = GivenWorld.Siida.SiidaResidents + GivenWorld._Reindeer
         for i in AIToSave:
 
             #Get all the variables we would otherwise need
             
-            PickledAQ = pickle.dumps(i._ActionQueue)        
-            PickledTags = pickle.dumps(i._ActiveTags)
-            PickledGoal = pickle.dumps(i._ActiveGoal)
-            PickledAction = pickle.dumps(i._ActiveAction)
-            PickledMoves = pickle.dumps(i._MoveQueue)
+            PickledAQ = pickle.dumps(i._GetActionQueue())        
+            PickledTags = pickle.dumps(i._GetActiveTags)
+            PickledGoal = pickle.dumps(i.__ActiveGoal)
+            PickledAction = pickle.dumps(i._GetActiveAction())
+            PickledMoves = pickle.dumps(i._GetMoveQueue())
             PickledHunter = pickle.dumps(i._Hunter)
 
             #Only our residents have a found so we use this try and except to catch the cases in which this is a reindeer...
@@ -301,12 +301,12 @@ class SaveManager():
             except:
                 pass
             
-            GoalLocComp = self.ConvertCoordinates(i._GoalLocation)
+            GoalLocComp = self.ConvertCoordinates(i._GetGoalLocation())
             LocComp = self.ConvertCoordinates(i.Location)
 
 
             Name = None
-
+            Hunger = 0
             #This is what discerns our AI - between residents and reindeer - 
             try:
                 Name = i.Name
@@ -316,9 +316,9 @@ class SaveManager():
             
             self.__SaveCursor.execute("""
             INSERT INTO AIs VALUES(:Save,  :State, :ActionQ, :Tags, :ActiveGoal, :ActiveAction, :MoveQ, :Hunter, :Hunting, :GoalLoc, :Loc, :Name, :Hunger)""", 
-            {'Save': self.__SaveName, 'State': i._CurrentState, 'ActionQ': PickledAQ, 'Tags': PickledTags, 'ActiveGoal': PickledGoal, 'ActiveAction': PickledAction, 'MoveQ': PickledMoves, 'Hunter': PickledHunter, 'Hunting':PickledHunting, 'GoalLoc':GoalLocComp, 'Loc': LocComp, 'Name': Name, 'Hunger': Hunger})
+            {'Save': self.__SaveName, 'State': i._GetCurrentState(), 'ActionQ': PickledAQ, 'Tags': PickledTags, 'ActiveGoal': PickledGoal, 'ActiveAction': PickledAction, 'MoveQ': PickledMoves, 'Hunter': PickledHunter, 'Hunting':PickledHunting, 'GoalLoc':GoalLocComp, 'Loc': LocComp, 'Name': Name, 'Hunger': Hunger})
 
-        for i in GivenWorld.Weather._CloudsInWorld:
+        for i in GivenWorld._Weather._CloudsInWorld:
             GridComp = self.ConvertGrid(i._Grid)          
             LocComp = self.ConvertCoordinates(i.Location)
             Age = i._CloudAge
@@ -337,9 +337,9 @@ class SaveManager():
             UPDATE Saves 
             SET DayNumber = :Day, Map = :Comp, SiidaLocation = :SiidaLoc, SiidaNeededGoals = :Goals, FoodStock = :Food, CloudChance = :CChance, LavvuStocked = :LavvuStock, WoodStock = :Wood
             WHERE SaveName = :Save             
-            """, {'Save': self.__SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance': GivenWorld.Weather._CumCloudChance, 'LavvuStock': GivenWorld.Siida.LavvuStocked, 'Wood': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
+            """, {'Save': self.__SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance': GivenWorld._Weather._CumCloudChance, 'LavvuStock': GivenWorld.Siida.LavvuStocked, 'Wood': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
         else:
-            self.__SaveCursor.execute("INSERT INTO Saves VALUES (:Save, :Day, :Comp, :SiidaLoc, :Goals, :Food, :CChance, :LStock, :WoodStock)", {'Save': self.__SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance':GivenWorld.Weather._CumCloudChance, 'LStock': GivenWorld.Siida.LavvuStocked, 'WoodStock': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
+            self.__SaveCursor.execute("INSERT INTO Saves VALUES (:Save, :Day, :Comp, :SiidaLoc, :Goals, :Food, :CChance, :LStock, :WoodStock)", {'Save': self.__SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance':GivenWorld._Weather._CumCloudChance, 'LStock': GivenWorld.Siida.LavvuStocked, 'WoodStock': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
 
 
         #And now for our lavvu

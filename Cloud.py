@@ -1,4 +1,4 @@
-#A cloud is a cellular automaton that shrinks every day, but classes the areas it is under as precipitating
+#A cloud is a cellular automaton that shrinks every day, but classes the areas it is under as __Precipitating
 import CellularAutomata as CA
 import random
 import pyglet
@@ -27,7 +27,7 @@ class Cloud(CA.CellularAutomata):
                         #Protection of going over map range
                         if TopCoord[1] + jC < self.__WeatherManager._Owner.GridDims[1]:
                             if jV == "~":
-                                #Grid locations of where this cloud should be precipitating now...
+                                #Grid locations of where this cloud should be Precipitating now...
                                 NewCells.append((TopCoord[0] + iC, TopCoord[1] + jC))
 
                                 #We also track the location of that cell in a seperate array so we know which index to delete when we are looking for a sprite at a specific location
@@ -40,9 +40,11 @@ class Cloud(CA.CellularAutomata):
             for Cell in NewCells:         
                 if Cell not in self.__AffectingCells:
                     CellObj = self.__WeatherManager._Owner._Grid[Cell[1]][Cell[0]]
-                    CellObj.Precipitating = 1
+
                     if self.__WeatherManager.GlobalTemperature < 0:
-                        CellObj.Precipitating = 2
+                        CellObj._SetPrecipitating(2)
+                    else:
+                        CellObj._SetPrecipitating(1)
 
                     NewSprite = pyglet.sprite.Sprite(IMGS.CloudIMG, Cell[1] * 16, Cell[0] * 16, batch=self.__WeatherManager._Owner.DrawBatch, group=IMGS.Weather)
                     NewSprite.opacity = 195
@@ -68,7 +70,7 @@ class Cloud(CA.CellularAutomata):
         #To add later when we've integrated the weather component: a function changing the possible dimensions
         #Untill that time lets just say 10x10
 
-        #Our grid is actually a grid of 1s and 0s for our cloud -  we simply take cells as raining - we then apply thbis grid over the world grid and take it as precipitating in those cells!
+        #Our grid is actually a grid of 1s and 0s for our cloud -  we simply take cells as raining - we then apply thbis grid over the world grid and take it as Precipitating in those cells!
         super().__init__((25,25), ".")
        
         #Keeps track of the coords of cells we are currently affecting so we can reset their statistics...
@@ -103,7 +105,7 @@ class Cloud(CA.CellularAutomata):
         #Reset precipitation for nearby cells...
         for Cell in self.__AffectingCells:
             CellObj = self.__WeatherManager._Owner._Grid[Cell[1]][Cell[0]]
-            CellObj.Precipitating = 0
+            CellObj._SetPrecipitating(0)
 
                                             #Up to 11 as this is lower <= x < higher
         if random.randrange(self._CloudAge, 11) == 10:

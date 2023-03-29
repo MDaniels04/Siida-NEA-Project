@@ -10,18 +10,10 @@ import Tag
 
 class Reindeer(AI.AI):
     
-    def __init__(self, GivenRep, GivenWorld, GivenLocation):
-        
+    def __init__(self, GivenRep, GivenWorld, GivenLocation):        
         super().__init__(GivenRep, GivenWorld, GivenLocation)
-
-
-        self._AvailableActions = self._AvailableActions + [
-
-        ]
-
-        
-
+ 
     #Overload to remove from the world's reindeer list
     def Death(self):
-        self._World.Reindeer.remove(self)
+        self._GetWorld().Reindeer.remove(self)
         super().Death()

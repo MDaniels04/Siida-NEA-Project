@@ -5,13 +5,13 @@ import Tag
 class Goal():
     
 
-    def __init__(self, GivenPrerequisiteTags, GivenGoalName, GivenPriority = 0):
-      self.Prereqs = GivenPrerequisiteTags
+    def __init__(self, GivenPrerequisiteTags, Given_GoalName, GivenPriority = 0):
+      self._Prereqs = GivenPrerequisiteTags
       self._Priority = GivenPriority
 
 
       #Flavour text printed to console when talking about this
-      self.GoalName = GivenGoalName
+      self._GoalName = Given_GoalName
 
 
 #Goals can all be children of the main class as they all have the same functionality...

@@ -10,7 +10,7 @@ class Cell(E.Entity):
        super().__init__(GivenRep, GivenLocation, GivenBatch, IMGS.Terrain)
 
        #How would this be represented as a character (for the purpose of compressio in saving and loading) 
-       self._ChrRep = GivenChrRep
+       self.__ChrRep = GivenChrRep
         
        #Weight is simulated as a measure of difficulty to pass through a cell for one reason or another
        #Lower numbers better!
@@ -20,18 +20,24 @@ class Cell(E.Entity):
        self.__TemperatureModifier = GivenTemperatureModifier
 
        #Precipitation in this cell
-       # 0 -> It is not precipitating
+       # 0 -> It is not Precipitating
        # 1 -> It is raining
        # 2 -> It is snowing
-       self.Precipitating = 0
-
-       self.ResourcesInCell = {
-
-            "FoodSupply":0,
-
-            "WoodSupply":0
-}
+       self.__Precipitating = 0
 
     #Calculate the temperature in this cell
-    def GetTemperature(self, GlobalTemp):
-        return GlobalTemp + (self.Precipitating * -2) + self.__TemperatureModifier
+    def _GetTemperature(self, GlobalTemp):
+        return GlobalTemp + (self.__Precipitating * -2) + self.__TemperatureModifier
+
+
+    ####
+    #   GETTERS AND SETTERS
+    ####
+    def _GetChrRep(self):
+        return self.__ChrRep
+
+    def _GetPrecipitating(self):
+        return self.__Precipitating
+    
+    def _SetPrecipitating(self, Given):
+        self.__Precipitating = Given

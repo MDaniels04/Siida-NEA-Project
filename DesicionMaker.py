@@ -139,10 +139,10 @@ class DesicionMaker():
 
         #What have we yet to meet?
         UnmetTags = []
-        for GoalIt in GivenGoal.Prereqs:
+        for GoalIt in GivenGoal._Prereqs:
             #Have we found this tag?
             bFoundTag = False
-            for ActiveIt in Performer._ActiveTags:
+            for ActiveIt in Performer._GetActiveTags():
                 
                 if ActiveIt.TagName == GoalIt.TagName:
                     bFoundTag = True
@@ -173,7 +173,7 @@ class DesicionMaker():
                 #Set our tag location so all our actions have a place to connect to...
                 TagLocation = self._RelativeCoords
 
-                for ActionIt in Performer._AvailableActions:
+                for ActionIt in Performer._GetAvailableActions():
                     for EffectIt in ActionIt._EffectTags:
                         #If this is what we need to solve rn...
                         if EffectIt.TagName == UnmetIt.TagName:

@@ -51,7 +51,7 @@ class WeatherManager():
         self.GlobalTemperature = round(((-20 * math.cos((2 * math.pi * DayNumber) / 365)) + self.__TempOffset + Fluct), 0)
                                                                              
     #Function ran every "day"
-    def DailyFunction(self):
+    def _DailyFunction(self):
 
         '''
     

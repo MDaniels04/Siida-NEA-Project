@@ -9,10 +9,10 @@ import random
 class Resident(AI.AI):
     #Overload of entity allows for option of sprite creation and spawning in the constructor - disabled by default so the 
     #If bLoading is true we do not need to spend any time on calculating values for these - they will be given to us...
-    def __init__(self, GivenRep, GivenWorld, SpawnLocation, GivenSiida, bLoading = False):
+    def __init__(self, GivenRep, GivenWorld, SpawnLocation, Given_Siida, bLoading = False):
 
         #The siida this entity belongs to - effects the available actions to this entity and goal assignment
-        self.Siida = GivenSiida
+        self._Siida = Given_Siida
         
         self.Name = ""
 
@@ -45,7 +45,7 @@ class Resident(AI.AI):
             #For the flavour texts purpose, so we get an idea of who's doing what...
             self.Name = Names[random.randint(0, (len(Names) - 1))]
 
-            print(self.Name, "has joined the Siida!")
+            print(self.Name, "has joined the _Siida!")
 
         #What resources are we currently carrying? While we carry stuff we have got back to the "siida". Doesn't really affect things except if we die on our way back to the siida
         self.CarryingResource = {
@@ -58,26 +58,26 @@ class Resident(AI.AI):
 
         super().__init__(GivenRep, GivenWorld, SpawnLocation)
 
-        self._AvailableActions = self._AvailableActions + [
+        self._SetAvailableActions(self._GetAvailableActions() + [
 
                 #Find (& hunt) a reindeer...
-                Action.Find([Tag.Tag("FoundPrey")], True, self._World.Reindeer, "Look for a reindeer to hunt"),
+                Action.Find([Tag.Tag("FoundPrey")], True, self._GetWorld()._Reindeer, "Look for a reindeer to hunt"),
 
                 #Track what we have found...
                 Action.Hunt([Tag.Tag("KilledPrey")], True, "Hunt their prey", 1, [Tag.Tag("FoundPrey")]),
 
                 #In preperation for migration pack up a lavvu
-                Action.Find([Tag.Tag("FoundLavvu")], True, self.Siida.Lavvu, "find a lavvu to pack up in preperation for migration"),
+                Action.Find([Tag.Tag("FoundLavvu")], True, self._Siida.Lavvu, "find a lavvu to pack up in preperation for migration"),
 
-                #Go towards a lavvu and pack it up - after this action is performed we will likely wander again - meaning we will go to a random location in the Siida - and hence move to the new siida location...
+                #Go towards a lavvu and pack it up - after this action is performed we will likely wander again - meaning we will go to a random location in the _Siida - and hence move to the new siida location...
                                                                                                                                #Only want to be able to do this in a migration
                 Action.PackLavvu([Tag.Tag("LavvuReady")], False, "pack up the lavvu they found", 1, [Tag.Tag("FoundLavvu"), Tag.Tag("PackingAbility")]),
 
-                #Go to the Siida, should we find ourselves outside of it and need to deposit stuff...            
-                Action.Return([Tag.Tag("AtSiidaCentre")], True, "go back to the Siida"),
+                #Go to the _Siida, should we find ourselves outside of it and need to deposit stuff...            
+                Action.Return([Tag.Tag("At_SiidaCentre")], True, "go back to the _Siida"),
             
                 #Consider this a fishing action - going to the coast to get some fish!
-                Action.GoToType([Tag.Tag("AtCoast")], True, self._World.SeaCoords,  "go to a fishing spot", 1),
+                Action.GoToType([Tag.Tag("AtCoast")], True, self._GetWorld()._SeaCoords,  "go to a fishing spot", 1),
 
                 #Get the food from a reindeer carcass
                 Action.Get([Tag.Tag("HasFood")], False, "FoodSupply", 500, "gather food from the carcass", 1,[Tag.Tag("KilledPrey")]),
@@ -86,75 +86,43 @@ class Resident(AI.AI):
                 Action.Get([Tag.Tag("HasFood")], False, "FoodSupply", 250, "fish", 1, [Tag.Tag("AtCoast")]),
 
                 #Go to a forest to get some wood!
-                Action.GoToType([Tag.Tag("AtForest")], True, self._World.ForestCoords, "gather wood from the forest", 1),
+                Action.GoToType([Tag.Tag("AtForest")], True, self._GetWorld()._ForestCoords, "gather wood from the forest", 1),
 
                 #Chop down some trees at a forest...                                                  We want em to unpack if they can
                 Action.Get([Tag.Tag("LavvuReady")], False, "WoodSupply", 10, "chop down some trees", 500, [Tag.Tag("AtForest")]),
 
                 #Build a lavvu
-                Action.BuildLavvu([Tag.Tag("BuiltLavvu")], False, "build a lavvu to rest their weary bones!", 1,  [Tag.Tag("AtBuildSite"), Tag.Tag("LavvuReady")]),
+                Action.BuildLavvu([Tag.Tag("BuiltLavvu")], False, "build a lavvu to rest their weary bones!", 1,  [Tag.Tag("AtBuildSite"), Tag.Tag("Deposited"), Tag.Tag("LavvuReady")]),
 
-                #Go to a location in Siida
-                Action.GoToInSiida([Tag.Tag("AtBuildSite")], True, "find a place in the Siida to build!", 1),
+                #Go to a location in _Siida
+                Action.GoToInSiida([Tag.Tag("AtBuildSite")], True, "find a place in the _Siida to build!", 1),
 
                 #future morgan, implement this action here - problems come from not checking that goals tags are still met - if we performa ctions we r assuming we have tags....
-                Action.Deposit([Tag.Tag("Deposited")], False, "drop off the food at the Siida", 1, [Tag.Tag("AtSiidaCentre")])
+                Action.Deposit([Tag.Tag("Deposited")], False, "drop off the food at the _Siida", 1, [Tag.Tag("At_SiidaCentre")])
            
-            ]
+            ])
     
-        self._ActiveTags = self._ActiveTags + [
-
-            Tag.Tag("InSiida")
-        ]  
-
-    #Resident's version of death will take any goals we were undertaking and pop them back into the Siida's needed goal's list...
+    #Resident's version of death will take any goals we were undertaking and pop them back into the _Siida's needed goal's list...
     def Death(self, Reason):
 
         #Flavour text to better understand
         print(self.Name, " has died due to ", Reason)
 
         #If we were working to fulfill a goal, then we want it to go back on to the needed goals to allow others to do it!
-        if self._ActiveGoal != None and self._ActiveGoal._Priority > 0:
-            self.Siida.NeededGoals.append(self._ActiveGoal)
+        if self._GetActiveGoal() != None and self._GetActiveGoal()._Priority > 0:
+            self._Siida.NeededGoals.append(self._GetActiveGoal())
 
 
-        self.Siida.SiidaResidents.remove(self)
+        self._Siida._SiidaResidents.remove(self)
         super().Death()
 
-
-    #Overload sets the sprite location, but with checks as to whether or not this moves them in / out of the Siida
-    def SetSpriteLocation(self, Given):    
-        super().SetSpriteLocation(Given)
-
-        Found = None  
-        for iC, iV in enumerate(self._ActiveTags):
-            if iV.TagName == "InSiida":
-                Found = iC
-        #Done this way as if tags have the same name they are still different objects and not the same value - so we couldnt just remove Tag.Tag("InSiida") because thats a different object to the one we would've appended         
-
-
-        #If we found it, we want to check for leaving the Siida...
-        if Found != None:
-            
-            if (abs(self.Location[0] - self.Siida.CentreLocation[0]) + abs(self.Location[1] - self.Siida.CentreLocation[1])) > self.Siida.SiidaRadius:
-                self._ActiveTags.pop(iC)
-                print(self.Name, " has walked outside of the siida...")
-
-        #If not we are checking for moving into the Siida to append the tag
-        else:
-            
-            if (abs(self.Location[0] - self.Siida.CentreLocation[0]) + abs(self.Location[1] - self.Siida.CentreLocation[1])) <= self.Siida.SiidaRadius:
-                self._ActiveTags.append(Tag.Tag("InSiida"))
-                print(self.Name, " has walked inside of  the siida...")
-
-
     #Overload of daily function to check for temperature...
-    def DailyFunction(self, NeededGoals = []):
+    def _DailyFunction(self, NeededGoals = []):
         
         #Our exposure increases if we are in a cold place
 
         #Debug temperature difference to prevent us from dying from the cold!
-        TempDiff = self._World._Grid[self.Location[1]][self.Location[0]].GetTemperature(self._World.Weather.GlobalTemperature) + 20
+        TempDiff = self._GetWorld()._Grid[self.Location[1]][self.Location[0]]._GetTemperature(self._GetWorld()._Weather.GlobalTemperature) + 50000
         if TempDiff < 0:
             self.Exposure += abs(TempDiff * 5)
         else:
@@ -164,16 +132,16 @@ class Resident(AI.AI):
             self.Death("overexposure to the cold!")
             pass
         else:
-            FoodDiff = self.Siida.ResourcesInStock["FoodSupply"] - 5
+            FoodDiff = self._Siida.ResourcesInStock["FoodSupply"] - 5
             if FoodDiff >= 0:
-                self.Siida.ResourcesInStock["FoodSupply"] -= 5
+                self._Siida.ResourcesInStock["FoodSupply"] -= 5
                 self.Hunger = 0
             else:
-                self.Siida.ResourcesInStock["FoodSupply"] = 0
+                self._Siida.ResourcesInStock["FoodSupply"] = 0
                 self.Hunger += FoodDiff 
 
             if self.Hunger >= 100:
                 self.Death("starvation!")
                 pass
             else:
-                super().DailyFunction(NeededGoals)
+                super()._DailyFunction(NeededGoals)

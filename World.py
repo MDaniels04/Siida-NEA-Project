@@ -26,8 +26,8 @@ class World(CA.CellularAutomata):
         for i in self._Grid:
             for j in i:
                 j.Spawn((StartY, StartX))
-                self.MapSprites.append(j._Sprite)
-                #self.MapSprites.append(j)
+                self.__MapSprites.append(j._Sprite)
+                #self.__MapSprites.append(j)
 
                 #Cell weight initially unique so we use this to ID our cells
 
@@ -37,26 +37,24 @@ class World(CA.CellularAutomata):
 
                 if j._Weight != 10000:
 
-                    self.LandCoords.append((StartY, StartX))
+                    self._LandCoords.append((StartY, StartX))
 
                     #We also fill lists of types of cells for easier identification - for example, rather than having an algorithm searching for tiles, we simply fill the lists, then have them iterated through and 
                     if j._Weight == 1:
-                        self.ForestCoords.append((StartY, StartX)) 
+                        self._ForestCoords.append((StartY, StartX)) 
                     
                     elif j._Weight == 2:
-                        self.HillCoords.append((StartY, StartX))
+                        self._HillCoords.append((StartY, StartX))
 
                     elif j._Weight == 50:
-                        self.MountainCoords.append((StartY, StartX))
+
+                        #As you've likely guessed, storing where mountains are in the worldight == 50:
+                        self._MountainCoords.append((StartY, StartX))
                     else:
       
-                        self.LowlandCoords.append((StartY, StartX))
+                        self._LowlandCoords.append((StartY, StartX))
                 else:
-                    self.SeaCoords.append((StartY, StartX))
-
-                    #For now, lets say there is 10 food in places with fish....
-                    j.ResourcesInCell["FoodSupply"] = 10
-        
+                    self._SeaCoords.append((StartY, StartX))
 
                 StartX += 1
             StartX = 0
@@ -87,35 +85,38 @@ class World(CA.CellularAutomata):
         super().__init__(GivenDims, SeaCell)
 
 
-        self.MapSprites = []
+        self.__MapSprites = []
        
-        #An array storing the coordinates of cells that aren't in the sea - used for finding locations to spawn entities... 
 
-        self.LandCoords = []
+        #Decided to store lists of coordinates of a type of cell to simplify the process of finding the closest ones of a type - rather than have to spiral outwards from a location
+        #checking if it is a correct type, we can simply find the closest coord from a likst
+
+        #An array storing the coordinates of cells that aren't in the sea - used for finding locations to spawn entities... 
+        self._LandCoords = []
     
         #Basic land cells
-        self.LowlandCoords = []
+        self._LowlandCoords = []
 
         #Same thing for sea cells 
-        self.SeaCoords = []
+        self._SeaCoords = []
 
         #The difference between this and the above is the above stores where has the wood resource - and shrinks as trees are cut down... This is the forest tiles - tree or not.
-        self.ForestCoords = []
+        self._ForestCoords = []
 
         #Storing where hills are on the map
-        self.HillCoords = []
+        self._HillCoords = []
 
-        self.MountainCoords = []
-
+        #As you've likely guessed, storing where mountains are in the world
+        self._MountainCoords = []
 
         #Our weather manager, dealing with the weather across the world.
-        self.Weather = W.WeatherManager(self, Saver)
+        self._Weather = W.WeatherManager(self, Saver)
     
         self.Time = T.TimeManager(self)
 
 
         #Reindeer currently in the world...
-        self.Reindeer = []
+        self._Reindeer = []
 
         if Saver.bFileToLoad == True:
             self.Time.DayNumber = Saver.SaveData[1]
@@ -124,7 +125,7 @@ class World(CA.CellularAutomata):
 
             self._Grid =  Saver.ConvertGrid(Saver.SaveData[2], self._Grid, S = SeaCell, L = LandCell, H = HillCell, F = ForestCell, M = MountainCell,)
             
-            self.Weather.CumCloudChance = Saver.SaveData[6]            
+            self._Weather.CumCloudChance = Saver.SaveData[6]            
 
             #Map is sorted
 
@@ -144,7 +145,7 @@ class World(CA.CellularAutomata):
                 OldReindeer.Hunter = pickle.loads(i[7])
                 OldReindeer.GoalLocation = Saver.ConvertCoordinates(i[9])
             
-                self.Reindeer.append(OldReindeer)
+                self._Reindeer.append(OldReindeer)
             self.AddSelfToBatch()
             
 
@@ -172,7 +173,7 @@ class World(CA.CellularAutomata):
         
             #Randomly spawn some reindeer...
             for i in range(1,7):
-                self.Reindeer.append(Reindeer.Reindeer(IMGS.ReindeerIMG, self, self.LandCoords[random.randrange(0, len(self.LandCoords))]))
+                self._Reindeer.append(Reindeer.Reindeer(IMGS.ReindeerIMG, self, self._LandCoords[random.randrange(0, len(self._LandCoords))]))
         
             '''
 
@@ -184,9 +185,9 @@ class World(CA.CellularAutomata):
         self.Siida = SM.Siida(10, 5, self, Saver)
 
     #The world's daily function :)
-    def DailyFunction(self):
-        self.Weather.DailyFunction()
-        self.Siida.DailyFunction()
+    def _DailyFunction(self):
+        self._Weather._DailyFunction()
+        self.Siida._DailyFunction()
 
-        for Rein in self.Reindeer:
-           Rein.DailyFunction()
+        for Rein in self._Reindeer:
+           Rein._DailyFunction()

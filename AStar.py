@@ -9,14 +9,14 @@ import Action as A
 class AStar():
     
     #Calculate the manhattan distance between the 2 points given - for use in pathfinding heuristics...
-    def ManhattanDistance(self, GivenCurrentLocation, GivenGoalLocation):
+    def _ManhattanDistance(self, GivenCurrentLocation, GivenGoalLocation):
 
         #We only use 2 dims for our manhattan distance as it is exclusively used for our map pathfinding...
         h = abs(GivenGoalLocation[0] - GivenCurrentLocation[0]) + abs(GivenGoalLocation[1] - GivenCurrentLocation[1])
         return h
     
     #We don't know how many dimensions will be passed in to this heuristic calculation as our graoph of an AI's available actions can have (theoretically) any number of branches
-    def EuclideanDistance(self, GivenCurrentLocation, GivenGoalLocation):
+    def __EuclideanDistance(self, GivenCurrentLocation, GivenGoalLocation):
         Distance = 0
 
         for Count, Value in enumerate(GivenGoalLocation):      
@@ -31,9 +31,9 @@ class AStar():
     #The type given indicates whether or not we are iterating through a grid or a graph - a grid has 4 possible connections, so uses manhattan, a graph has infinite, so uses euclidean
     def __h(self, Type, Current, Goal, ToTraverse):
         if Type == True:
-            return self.EuclideanDistance(Current, Goal)
+            return self.__EuclideanDistance(Current, Goal)
         else:
-            return self.ManhattanDistance(Current, Goal)
+            return self._ManhattanDistance(Current, Goal)
 
     
     #As with our heuristical calculation, we have different methods based on if this is our graph or grid we are traversing
@@ -51,14 +51,14 @@ class AStar():
 
                 Neighbours.append((Current[0] -1, Current[1]))
         
-             if Current[0] < ToTraverse.GridDims[0] -1:
+             if Current[0] < len(ToTraverse[0]) -1:
                 
                 Neighbours.append((Current[0] + 1, Current[1]))
         
              if Current[1] > 0:
                 Neighbours.append((Current[0], Current[1] - 1))
 
-             if Current[1] < ToTraverse.GridDims[1] -1:
+             if Current[1] < len(ToTraverse) -1:
                 Neighbours.append((Current[0], Current[1] + 1))
         return Neighbours
 

@@ -17,14 +17,12 @@ class Siida():
     #A function to return a random land coordinate within a certain radius of what we take the siida to be - this will mean people will spawn together, and build structures in largely the same area....    
     def GetLocationInSiida(self):
         #Get which land coords satisfy the radius, then pick a random one
-
         InBounds = []
-        for It in self.World.LandCoords:
+        for It in self.World._LandCoords:
             #Copy pasted Manhattan distance from A* - its not much repeated code I spose, and otherwise we get circular import problemos...
-            if (abs(It[0] - self.CentreLocation[0]) + abs(It[1] - self.CentreLocation[1])) <= self.SiidaRadius:
+            if (abs(It[0] - self.CentreLocation[0]) + abs(It[1] - self.CentreLocation[1])) <= self._SiidaRadius:
                 InBounds.append(It)
                 #NOT CALLING HERE              
-
         return random.choice(InBounds)
 
     #Created at the start of the game...
@@ -35,7 +33,7 @@ class Siida():
 
         self.World = GivenWorld 
 
-        self.SiidaRadius = 5
+        self._SiidaRadius = 5
 
         #The Lavvu in our world!
         self.Lavvu = []
@@ -81,8 +79,8 @@ class Siida():
 
                 OldResident.CurrentState = i[1]
                 OldResident.ActionQueue = pickle.loads(i[2])
-                OldResident._ActiveTags = pickle.loads(i[3])
-                OldResident._ActiveGoal = pickle.loads(i[4])
+                OldResident._SetActiveTags(pickle.loads(i[3]))
+                OldResident._SetActiveGoal(pickle.loads(i[4]))
                 OldResident.ActiveAction = pickle.loads(i[5])
                 OldResident.MoveQueue = pickle.loads(i[6])
                 OldResident.Hunter = pickle.loads(i[7])
@@ -102,7 +100,7 @@ class Siida():
         else:
 
             #Here we are specifying a coord to be taken as the current centre of the Siida -
-            self.CentreLocation = self.World.LandCoords[random.randrange(0, len(self.World.LandCoords))]
+            self.CentreLocation = self.World._LandCoords[random.randrange(0, len(self.World._LandCoords))]
        
 
             #Spawn in our initial siida members
@@ -144,7 +142,7 @@ class Siida():
         return TerrainTypeList[random.randrange(0, len(TerrainTypeList))]
 
     #The function run every day, checking the stats of the siida and assigning goals if the problem arises....
-    def DailyFunction(self):
+    def _DailyFunction(self):
 
 
         #Look into migrating
@@ -158,13 +156,13 @@ class Siida():
         bMigrationStart = False
 
         if DayOfYear == 1:
-            self.CentreLocation = random.choice(self.World.MountainCoords)
+            self.CentreLocation = random.choice(self.World._MountainCoords)
             bMigrationStart = True
         elif DayOfYear == 274:
-            self.CentreLocation = random.choice(self.World.LowlandCoords)
+            self.CentreLocation = random.choice(self.World._LowlandCoords)
             bMigrationStart = True
         elif DayOfYear == 335:
-            self.CentreLocation = random.choice(self.World.ForestCoords)
+            self.CentreLocation = random.choice(self.World._ForestCoords)
             bMigrationStart = True
 
         #Assign enough new goals to migrate for each lavvu and give everyone the migration tag...
@@ -175,7 +173,7 @@ class Siida():
                 #Give all residents the ability to do this...
                 for i in self.SiidaResidents:
                                             #When a resident is "migrating" they can pack up lavvu rather than going to make...
-                    i._ActiveTags.append(Tag.Tag("PackingAbility"))
+                    i._SetActiveTags(self._GetActiveTags() + [Tag.Tag("PackingAbility")])
                 #This should automatically be removed when they place the huts...
 
                 for j in range(len(self.Lavvu)):
@@ -208,13 +206,13 @@ class Siida():
         self.NeededGoals.sort(key=lambda x: x._Priority, reverse=True)
    
         #Sort our residents ascending by the priority of their current goals so those with the least important goals will get assigned goals first
-        self.SiidaResidents.sort(key=lambda x: x._ActiveGoal._Priority)
+        self.SiidaResidents.sort(key=lambda x: x._GetActiveGoal()._Priority)
        
 
         #Now we go through our residents and run their daily function..
         for ResIt in self.SiidaResidents:
             #Take down our food 
-            ResIt.DailyFunction(self.NeededGoals)
+            ResIt._DailyFunction(self.NeededGoals)
 
     #The goal at the front of our needed goal list has been accepted - and so no longer needs to be in the to do list!
     def TakeGoal(self):
