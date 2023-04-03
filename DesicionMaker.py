@@ -104,7 +104,7 @@ class DesicionMaker():
         
         #Our goal object doesn't have a weight attribute so this is an error catch
         if GoalConnect != (1,0):
-            Weight = GivenGoal._Weight
+            Weight = GivenGoal._GetWeight()
 
         #DEBUG CHANGE
         else:
@@ -132,12 +132,12 @@ class DesicionMaker():
             bFoundTag = False
             for ActiveIt in Performer._GetActiveTags():
                 
-                if ActiveIt.TagName == GoalIt.TagName:
+                if ActiveIt._GetTagName() == GoalIt._GetTagName():
                     bFoundTag = True
 
             if bFoundTag == False:
                 #Bug with python - this is should be defined but isnt....
-                UnmetTags.append(Tag.Tag(GoalIt.TagName))
+                UnmetTags.append(Tag.Tag(GoalIt._GetTagName()))
        
         #If this action is not performable at this time
         if len(UnmetTags) > 0:
@@ -162,9 +162,9 @@ class DesicionMaker():
                 TagLocation = self.__RelativeCoords
 
                 for ActionIt in Performer._GetAvailableActions():
-                    for EffectIt in ActionIt._EffectTags:
+                    for EffectIt in ActionIt._GetEffectTags():
                         #If this is what we need to solve rn...
-                        if EffectIt.TagName == UnmetIt.TagName:
+                        if EffectIt._GetTagName() == UnmetIt._GetTagName():
                                         
                             #Recursion!
                             self._FormPlanningGraph(ActionIt, Performer, TagLocation, Branch)

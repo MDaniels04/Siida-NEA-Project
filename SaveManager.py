@@ -40,6 +40,7 @@ class SaveManager():
                     Loc INTEGER,
                     Name TEXT,
                     Hunger INTEGER,
+                    Carrying BLOB,
 
                     FOREIGN KEY(Save) REFERENCES Saves(SaveName)
             );
@@ -100,28 +101,28 @@ class SaveManager():
             else:
                 
                 #Check that the given name actually exists...         
-                self.SaveData = self.__SaveCursor.execute("""
+                self.__SaveData = self.__SaveCursor.execute("""
                     SELECT * FROM Saves WHERE SaveName = :Name         
                 """, {'Name':Choice}).fetchone()
 
-                if self.SaveData != None:
+                if self.__SaveData != None:
               
                     #Get all AI not including residents...
-                    self.AIData = self.__SaveCursor.execute("""
+                    self.__AIData = self.__SaveCursor.execute("""
                     SELECT * FROM AIs WHERE Save = :SaveName AND Name IS NULL
                     """, { 'SaveName':Choice}).fetchall()
 
                     #And now the residents...
-                    self.ResidentData = self.__SaveCursor.execute("""
+                    self.__ResidentData = self.__SaveCursor.execute("""
                     SELECT * FROM AIs WHERE Save = :SaveName AND Name IS NOT NULL
                     """, { 'SaveName':Choice}).fetchall()
         
                     #Get our existing clouds
-                    self.CloudsSaved = self.__SaveCursor.execute("""
+                    self.__CloudsSaved = self.__SaveCursor.execute("""
                     SELECT * FROM Clouds WHERE Save = :SaveName
                     """, {'SaveName':Choice}).fetchall()
     
-                    self.LavvuData = self.__SaveCursor.execute("""
+                    self.__LavvuData = self.__SaveCursor.execute("""
                     SELECT Loc FROM Lavvu WHERE Save = :SaveName
                     """, {'SaveName':Choice}).fetchall()
 
@@ -142,7 +143,7 @@ class SaveManager():
                     self.__SaveName = Choice
                     print("Loading ", self.__SaveName)
 
-                    self.bFileToLoad = True
+                    self.__bFileToLoad = True
                 else:
                     print("There was an error with your input name - likely the name couldn't be found in the saves database...")
                     self.__InputSaveChoice()
@@ -160,18 +161,17 @@ class SaveManager():
         self.__SaveCursor = self.__SaveController.cursor()
 
         #Data read from save file about their respective tables...
-        self.SaveData = None
-        self.AIData = None
-        self.ResidentData = None
-        self.LavvuData = None
-
-        self.CloudsSaved = None
+        self.__SaveData = None
+        self.__AIData = None
+        self.__ResidentData = None
+        self.__LavvuData = None
+        self.__CloudsSaved = None
 
         #Save name that refers to the simulation we are running this time...
         self.__SaveName = ""
 
         #Is there a file we should load?
-        self.bFileToLoad = False
+        self.__bFileToLoad = False
 
         #We will be constructed upon system start, so want to handle the opening of files...
 
@@ -199,7 +199,7 @@ class SaveManager():
 
 
     #Convert coordinates into or out of a form that can be saved as an integer...
-    def ConvertCoordinates(self, Given):
+    def _ConvertCoordinates(self, Given):
    
         #Turn the location into a number we can use in the database!
         try:
@@ -216,7 +216,7 @@ class SaveManager():
     
 
     #Run length encode / un run length encode a grid of cells so it can be saved...
-    def ConvertGrid(self, Given, UncompTo = None, **ConvertRepsTo):
+    def _ConvertGrid(self, Given, UncompTo = None, **ConvertRepsTo):
         
         #Into RLE 2D array -> String
         if UncompTo == None:
@@ -278,11 +278,11 @@ class SaveManager():
             return UnComped
                          
     #Save our simulation - note down the stuff we need
-    def Save(self, GivenWorld):
+    def _Save(self, GivenWorld):
  
-        MapComp = self.ConvertGrid(GivenWorld._Grid)
+        MapComp = self._ConvertGrid(GivenWorld._Grid)
 
-        AIToSave = GivenWorld.Siida.SiidaResidents + GivenWorld._Reindeer
+        AIToSave = GivenWorld.Siida._GetSiidaResidents() + GivenWorld._GetReindeer()
         for i in AIToSave:
 
             #Get all the variables we would otherwise need
@@ -297,30 +297,32 @@ class SaveManager():
             #Only our residents have a found so we use this try and except to catch the cases in which this is a reindeer...
             PickledHunting = None
             try:
-                PickledHunting = pickle.dumps(i.Found)
+                PickledHunting = pickle.dumps(i._GetFound())
             except:
                 pass
             
-            GoalLocComp = self.ConvertCoordinates(i._GetGoalLocation())
-            LocComp = self.ConvertCoordinates(i._GetLocation())
+            GoalLocComp = self._ConvertCoordinates(i._GetGoalLocation())
+            LocComp = self._ConvertCoordinates(i._GetLocation())
 
 
             Name = None
             Hunger = 0
+            CResources = None
             #This is what discerns our AI - between residents and reindeer - 
             try:
-                Name = i.Name
-                Hunger = i.Hunger
+                Name = i._GetName()
+                Hunger = i._GetHunger()
+                CResources = pickle.dumps(i._GetCarryingResources())
             except:
                 pass
             
             self.__SaveCursor.execute("""
-            INSERT INTO AIs VALUES(:Save,  :State, :ActionQ, :Tags, :ActiveGoal, :ActiveAction, :MoveQ, :Hunter, :Hunting, :GoalLoc, :Loc, :Name, :Hunger)""", 
-            {'Save': self.__SaveName, 'State': i._GetCurrentState(), 'ActionQ': PickledAQ, 'Tags': PickledTags, 'ActiveGoal': PickledGoal, 'ActiveAction': PickledAction, 'MoveQ': PickledMoves, 'Hunter': PickledHunter, 'Hunting':PickledHunting, 'GoalLoc':GoalLocComp, 'Loc': LocComp, 'Name': Name, 'Hunger': Hunger})
+            INSERT INTO AIs VALUES(:Save, :State, :ActionQ, :Tags, :ActiveGoal, :ActiveAction, :MoveQ, :Hunter, :Hunting, :GoalLoc, :Loc, :Name, :Hunger, :Carrying)""", 
+            {'Save': self.__SaveName, 'State': i._GetCurrentState(), 'ActionQ': PickledAQ, 'Tags': PickledTags, 'ActiveGoal': PickledGoal, 'ActiveAction': PickledAction, 'MoveQ': PickledMoves, 'Hunter': PickledHunter, 'Hunting':PickledHunting, 'GoalLoc':GoalLocComp, 'Loc': LocComp, 'Name': Name, 'Hunger': Hunger, 'Carrying': CResources})
 
-        for i in GivenWorld._Weather._CloudsInWorld:
-            GridComp = self.ConvertGrid(i._Grid)          
-            LocComp = self.ConvertCoordinates(i._GetLocation())
+        for i in GivenWorld._GetWeather()._GetCloudsInWorld():
+            GridComp = self._ConvertGrid(i._Grid)          
+            LocComp = self._ConvertCoordinates(i._GetLocation())
             Age = i._GetCloudAge()
             self.__SaveCursor.execute("INSERT INTO Clouds VALUES (:Save, :Location, :Grid, :Age)", {"Save":self.__SaveName, "Location":LocComp, "Grid":GridComp, 'Age':Age})  
 
@@ -328,7 +330,7 @@ class SaveManager():
         #No need to do the injection protection here...                                                                            
         
         
-        SiidaLocation = self.ConvertCoordinates(GivenWorld.Siida.CentreLocation)
+        SiidaLocation = self._ConvertCoordinates(GivenWorld.Siida.CentreLocation)
         PickleGoals = pickle.dumps(GivenWorld.Siida.NeededGoals)
 
         #If this already exists
@@ -337,9 +339,9 @@ class SaveManager():
             UPDATE Saves 
             SET DayNumber = :Day, Map = :Comp, SiidaLocation = :SiidaLoc, SiidaNeededGoals = :Goals, FoodStock = :Food, CloudChance = :CChance, LavvuStocked = :LavvuStock, WoodStock = :Wood
             WHERE SaveName = :Save             
-            """, {'Save': self.__SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance': GivenWorld._Weather._CumCloudChance, 'LavvuStock': GivenWorld.Siida.LavvuStocked, 'Wood': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
+            """, {'Save': self.__SaveName, 'Day': GivenWorld._GetTime()._GetDayNumber(), 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance': GivenWorld._GetWeather()._GetCumulativeCloudChance(), 'LavvuStock': GivenWorld.Siida._GetLavvuStocked(), 'Wood': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
         else:
-            self.__SaveCursor.execute("INSERT INTO Saves VALUES (:Save, :Day, :Comp, :SiidaLoc, :Goals, :Food, :CChance, :LStock, :WoodStock)", {'Save': self.__SaveName, 'Day': GivenWorld.Time.DayNumber, 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance':GivenWorld._Weather._CumCloudChance, 'LStock': GivenWorld.Siida.LavvuStocked, 'WoodStock': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
+            self.__SaveCursor.execute("INSERT INTO Saves VALUES (:Save, :Day, :Comp, :SiidaLoc, :Goals, :Food, :CChance, :LStock, :WoodStock)", {'Save': self.__SaveName, 'Day': GivenWorld._GetTime()._GetDayNumber(), 'Comp': MapComp, 'SiidaLoc': SiidaLocation, 'Goals': PickleGoals, 'Food': GivenWorld.Siida.ResourcesInStock["FoodSupply"], 'CChance':GivenWorld._GetWeather()._GetCumulativeCloudChance(), 'LStock': GivenWorld.Siida._GetLavvuStocked(), 'WoodStock': GivenWorld.Siida.ResourcesInStock["WoodSupply"]})
 
 
         #And now for our lavvu
@@ -351,7 +353,7 @@ class SaveManager():
         LavvuInTable = self.__SaveCursor.execute("SELECT rowid, Loc FROM Lavvu WHERE Save = :GivenSave", {'GivenSave':self.__SaveName}).fetchall()
 
         #If we have more lavvu saved then existing, pop the difference from the table. 
-        LengthDiff = len(LavvuInTable) - len(GivenWorld.Siida.Lavvu)
+        LengthDiff = len(LavvuInTable) - len(GivenWorld.Siida._GetLavvu())
         if LengthDiff > 0:
                 #kick it out of the table!
                 self.__SaveCursor.execute("""
@@ -359,11 +361,11 @@ class SaveManager():
                 FROM Lavvu
                 """, {'Diff':LengthDiff})
         
-        for i in GivenWorld.Siida.Lavvu:
+        for i in GivenWorld.Siida._GetLavvu():
             bFound = False
             for j in LavvuInTable:
         
-                if self.ConvertCoordinates(i._GetLocation()) == j[1]:        
+                if self._ConvertCoordinates(i._GetLocation()) == j[1]:        
                     bFound = True
 
                     #Remove this from our lavvu saved list so we do not use it again for others
@@ -374,14 +376,14 @@ class SaveManager():
 
                 if LengthDiff < 0:
                     LengthDiff += 1
-                    self.__SaveCursor.execute("""INSERT INTO Lavvu VALUES(:SaveName, :Location)""", {'SaveName': self.__SaveName, 'Location': self.ConvertCoordinates(i._GetLocation())})
+                    self.__SaveCursor.execute("""INSERT INTO Lavvu VALUES(:SaveName, :Location)""", {'SaveName': self.__SaveName, 'Location': self._ConvertCoordinates(i._GetLocation())})
 
                 #else if we now have the same number of records update where the top location from the 
                 else:
                     self.__SaveCursor.execute("""
                     UPDATE Lavvu
                     SET Loc = :NewLoc
-                    WHERE rowid = :GivenID  """, {'NewLoc': self.ConvertCoordinates(i._GetLocation()), 'GivenID': LavvuInTable[0][0]})
+                    WHERE rowid = :GivenID  """, {'NewLoc': self._ConvertCoordinates(i._GetLocation()), 'GivenID': LavvuInTable[0][0]})
                     LavvuInTable.pop(0)
 
         #HOPEFULLY that has worked...
@@ -390,3 +392,25 @@ class SaveManager():
         self.__SaveController.commit()
         print("Simulation saved!")
 
+
+        ##
+        #GETTERS AND SETTERS
+        ##
+
+    def _GetSaveData(self):
+        return self.__SaveData
+
+    def _GetAIData(self):
+        return self.__AIData
+
+    def _GetResidentData(self):
+        return self.__ResidentData
+
+    def _GetLavvuData(self):
+        return self.__LavvuData
+
+    def _GetCloudsSaved(self):
+        return self.__CloudsSaved
+
+    def _GetFileToLoad(self):
+        return self.__bFileToLoad

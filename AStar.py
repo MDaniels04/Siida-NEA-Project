@@ -72,7 +72,7 @@ class AStar():
         #Grid 
         else:
             #Use the tuple pieces in the list
-            W = ToTraverse._Grid[Current[0]][Current[1]]._Weight
+            W = ToTraverse._Grid[Current[0]][Current[1]]._GetWeight()
             return W
     
     def __AddToActionPath(self, Thing, Path):

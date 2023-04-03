@@ -52,7 +52,7 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         self.__GoalLocation = (0,0)
 
         #We will always want to auto spawn our AI
-        super().__init__(GivenRep, SpawnLocation, GivenWorld.DrawBatch, IMGS.People, True)  
+        super().__init__(GivenRep, SpawnLocation, GivenWorld._GetDrawBatch(), IMGS.People, True)  
 
     #Called in our finite state machine when our state is 1 to dictate what the state should be next based on if we have any actions we want to do...
     def __StateChangeAfterMovement(self):
@@ -91,15 +91,15 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
                 #Try incase our active action is none (i.e.: we aren't doing anything)
                 try:
                                                  #A 0 priority goal is essentially a time filler - wandering - or pausing - something not worth other AI picking up...                               
-                    if self.__ActiveAction._bInterruptable == True:
+                    if self.__ActiveAction._GetInterruptable() == True:
                         if self.__ActiveGoal._GetPriority() > 0: 
-                            self._Siida.NeededGoals.append(self.__ActiveGoal)
+                            self._GetSiida().NeededGoals.append(self.__ActiveGoal)
                         self.__AssignNewGoal(NeededGoals[0])
-                        self._Siida.TakeGoal()
+                        self._GetSiida().TakeGoal()
                 #so it will be interruptible
                 except:
                         self.__AssignNewGoal(NeededGoals[0])
-                        self._Siida.TakeGoal()
+                        self._GetSiida().TakeGoal()
     
                     
             
@@ -109,7 +109,7 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         if self.__CurrentState == 0:            
             if bRequiredGoals:    
                self.__AssignNewGoal(NeededGoals[0])
-               self._Siida.TakeGoal()
+               self._GetSiida().TakeGoal()
             else:
                     #Else wander
                     self.__AssignNewGoal(Goal.Goal([Tag.Tag("Wander")], " pass the time"))
@@ -139,6 +139,9 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
                     except:
                         pass
                 else:                 
+
+                    #Remove the active tags we got from the final actions in our action queue so we can do that action tree again...
+                    self.__ActiveTags = []
                     self.__CurrentState = 0
          
     #Update this entities statistics every day...
@@ -151,10 +154,10 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         #Try incase this is a none type
         if self._Hunter != None:
             if self._GetLocation() != self._Hunter.__GoalLocation:
-                self._Hunter._SetGoalLocation(self._GetLocation())
+                self._Hunter._SetGoalLocationToPathfind(self._GetLocation())
 
     #Set our goal location and change our state back to moving - its time to start hoofing it
-    def _SetGoalLocation(self, Given):
+    def _SetGoalLocationToPathfind(self, Given):
         self.__GoalLocation = Given
         self.__MoveQueue = []
         self.__CurrentState = 1
@@ -164,7 +167,7 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
     def __UnableToAchieveGoal(self):
  
         try:
-            print(self.Name, " didn't manage to ", self.__ActiveGoal._GetGoalName())
+            print(self._GetName(), " didn't manage to ", self.__ActiveGoal._GetGoalName())
         except:
             pass
 
@@ -230,7 +233,7 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
         #If we were moving we 
 
         #Failing an action will make us less likely to do it in the future...
-        self.__AvailableActions[self.__AvailableActions.index(self.__ActiveAction)]._Weight += self.__ActiveAction._FailureWeightOffset
+        self.__AvailableActions[self.__AvailableActions.index(self.__ActiveAction)]._SetWeight(self.__ActiveAction._GetWeight() + self.__ActiveAction._FailureWeightOffset)
 
         #We now want to replan if we can
         self.__AssignNewGoal(self.__ActiveGoal)
@@ -246,11 +249,21 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
     def _GetCurrentState(self):
         return self.__CurrentState
 
+    def _SetCurrentState(self, Given):
+        self.__CurrentState = Given
+
     def _GetGoalLocation(self):
         return self.__GoalLocation
 
+    #Specified to avoid confusion with _SetGoalLocationToPathfind
+    def _SetGoalLocationSetter(self, Given):
+        self.__GoalLocation = Given    
+
     def _GetActionQueue(self):
         return self.__ActionQueue
+
+    def _SetActionQueue(self, Given):
+        self.__ActionQueue = Given
 
     def _GetWorld(self):
         return self.__World
@@ -281,3 +294,6 @@ class AI(Entity.Entity, AStar.AStar, DM.DesicionMaker):
 
     def _GetMoveQueue(self):
         return self.__MoveQueue
+
+    def _SetMoveQueue(self, Given):
+        self.__MoveQueue = Given

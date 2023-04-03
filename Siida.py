@@ -37,7 +37,7 @@ MainBatch = pyglet.graphics.Batch()
 World = W.World((50,50), MainBatch, Saver)
 
 #Schedule the "day" function to be called every x seconds
-pyglet.clock.schedule_interval(World.Time.Day, 0.1)
+pyglet.clock.schedule_interval(World._GetTime()._Day, 0.1)
 
 @MainWindow.event
 def on_draw():
@@ -47,5 +47,5 @@ def on_draw():
 pyglet.app.run()
 
 #Automatically save our world once the app has been closed
-Saver.Save(World)
+Saver._Save(World)
 print("That's all folks!")

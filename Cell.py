@@ -1,6 +1,5 @@
 import Entity as E
 import IMGS
-
 class Cell(E.Entity):
     #Add other stuff when necessary, void just for this instance of testing our map generator...
     
@@ -14,7 +13,7 @@ class Cell(E.Entity):
         
        #Weight is simulated as a measure of difficulty to pass through a cell for one reason or another
        #Lower numbers better!
-       self._Weight = GivenWeight
+       self.__Weight = GivenWeight
     
        #A signed amount that being in this cell offsets the temperature by (e.g.: colder in mountains)
        self.__TemperatureModifier = GivenTemperatureModifier
@@ -29,6 +28,8 @@ class Cell(E.Entity):
     def _GetTemperature(self, GlobalTemp):
         return GlobalTemp + (self.__Precipitating * -2) + self.__TemperatureModifier
 
+    def _GetWeight(self):
+        return self.__Weight
 
     ####
     #   GETTERS AND SETTERS

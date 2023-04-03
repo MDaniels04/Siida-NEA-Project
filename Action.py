@@ -1,5 +1,4 @@
 import Goal
-import Tag
 import math
 import random
 import Hut
@@ -15,20 +14,20 @@ class Action(Goal.Goal):
     #Given weight <- The weight assigned to completing this action
     #Giveb prerequisite tags <- The tags we want AI to have before being able to do this action
     #Given removes tags <- Tags in addition to this action's prerequisites completing it will remove
+    #If this is an end goal, we do not append the tags for the effects - we mayu need to do this action again...
     def __init__(self, GivenEffectTags, Interruptable, GivenGoalName, GivenWeight = 1,  GivenPrerequisiteTags = [], GivenRemovesTags = []):
         super().__init__(GivenPrerequisiteTags, GivenGoalName)
 
-
-        self._bInterruptable = Interruptable    
-        self._EffectTags = GivenEffectTags
-        self._RemovesAdditionalTags = GivenRemovesTags
-        self._Weight = GivenWeight
+        self.__bInterruptable = Interruptable    
+        self.__EffectTags = GivenEffectTags
+        self.__RemovesAdditionalTags = GivenRemovesTags
+        self.__Weight = GivenWeight
 
         #MORGZ FINISH THIS HERE
         #How much weight will failing this action add to the 
         self._FailureWeightOffset = 5
 
-        #Can this action be repeated or not (If it is finite, tags will be appended upon completion, else they will not)
+        #Can this action be repeated or not (If it is finite, tags will be appended upon completion, else they will not)f
         self._bFinite = True
 
     #The action did not succeed and we need to replan
@@ -38,7 +37,7 @@ class Action(Goal.Goal):
         
         try:
             #Print this "flavour text"
-            print(Performer.Name, " wasn't able to ", self._GetGoalName(), Reason if Reason != None else " - something went wrong!")   
+            print(Performer._GetName(), " wasn't able to ", self._GetGoalName(), Reason if Reason != None else " - something went wrong!")   
 
         #If they don't have a name (i.e.: aren't a resident) this will throw an except - in which case we dont want any flavour text  
         except:
@@ -57,7 +56,7 @@ class Action(Goal.Goal):
         for PrereqIt in self._GetPrereqs():
             bFound = False
             for ActiveIt in Performer._GetActiveTags():
-                if ActiveIt.TagName == PrereqIt.TagName:
+                if ActiveIt._GetTagName() == PrereqIt._GetTagName():
                     bFound = True
             #Performer didn't have the necessary tags
             if bFound == False:
@@ -65,7 +64,7 @@ class Action(Goal.Goal):
             else:
                 #We only want to print info for residents as the console will likely be cluttered enough as it is...
                 try:
-                    print(Performer.Name, " is going to ", self._GetGoalName(), "!")
+                    print(Performer._GetName(), " is going to ", self._GetGoalName(), "!")
                 except:
                     pass
 
@@ -77,27 +76,39 @@ class Action(Goal.Goal):
         Performer._SetActiveAction(None)
 
         #If we are supposed to only do this action once
-        if self._bFinite:
+        if self._bFinite == True:
 
             #Update the tags of our performer
-            for TagIt in self._EffectTags:
+            for TagIt in self.__EffectTags:
                 if TagIt not in Performer._GetActiveTags():
                     Performer._SetActiveTags(Performer._GetActiveTags() + [TagIt])
 
             #Remove the tags we should remove by doing this
             for PrereqIt in self._GetPrereqs():
                 for ActiveIt in Performer._GetActiveTags():
-                    if PrereqIt.TagName == ActiveIt.TagName:
+                    if PrereqIt._GetTagName() == ActiveIt._GetTagName():
                         Performer._GetActiveTags().remove(ActiveIt)
 
         #If we are infinite, we still want to remove any additionally specified remove tags
         #(Just not our prerequisites as this would prevent us from doing it again)
-        for RemoveIt in self._RemovesAdditionalTags:
+        for RemoveIt in self.__RemovesAdditionalTags:
             for ActiveIt in Performer._GetActiveTags():
-                if RemoveIt.TagName == ActiveIt.TagName:
+                if RemoveIt._GetTagName() == ActiveIt._GetTagName():
                     Performer._GetActiveTags().remove(ActiveIt)
-        
-            
+
+
+    def _GetInterruptable(self):
+        return self.__bInterruptable
+
+    def _GetEffectTags(self):
+        return self.__EffectTags
+
+    def _GetWeight(self):
+        return self.__Weight
+
+    def _SetWeight(self, Given):
+        self.__Weight = Given
+               
 #Get actions will "get" an amount of a resource...
 class Get(Action):
 
@@ -113,7 +124,7 @@ class Get(Action):
 
     def _PerformAction(self, Performer):
         super()._PerformAction(Performer)
-        Performer.CarryingResource[self.__ResourceName] += self.__Amount
+        Performer._SetCarryingResources(self.__ResourceName, self.__Amount)
         self._ActionComplete(Performer)
     
 
@@ -134,7 +145,7 @@ class GoTo(Action):
      def _PerformAction(self, Performer):
          super()._PerformAction(Performer)
          #Get the performer to pathfind to this point
-         Performer._SetGoalLocation(self._GoTo)  
+         Performer._SetGoalLocationToPathfind(self._GoTo)  
 
 
 
@@ -144,7 +155,7 @@ class Return(GoTo):
     
     #Function to make sure where we are going to is up to date.
     def UpdateGoTo(self, Performer):
-        self._GoTo = Performer._Siida.CentreLocation
+        self._GoTo = Performer._GetSiida().CentreLocation
 
     def _PerformAction(self, Performer):
         self.UpdateGoTo(Performer)
@@ -154,7 +165,7 @@ class Return(GoTo):
 class GoToInSiida(GoTo):
 
     def _PerformAction(self, Performer):
-        self._GoTo = Performer._Siida.GetLocationInSiida()
+        self._GoTo = Performer._GetSiida()._GetLocationInSiida()
         super()._PerformAction(Performer)
     
 #go to a specific type of terrain (as defined in lists passed in)
@@ -194,12 +205,12 @@ class Wander(GoTo):
 
     def _PerformAction(self, Performer):
         try:
-            self._GoTo = Performer._Siida.GetLocationInSiida()
+            self._GoTo = Performer._GetSiida()._GetLocationInSiida()
         except:
            
             #Go to a random land coordinate
             #Might have to fix...
-            self._GoTo = random.choice(Performer._GetWorld()._LandCoords)
+            self._GoTo = random.choice(Performer._GetWorld()._GetLandCoords())
 
         super()._PerformAction(Performer)
 
@@ -208,7 +219,7 @@ class Wander(GoTo):
 class Hunt(GoTo):
 
     def _PerformAction(self, Performer):
-       self._GoTo = Performer.Found._GetLocation()
+       self._GoTo = Performer._GetFound()._GetLocation()
        super()._PerformAction(Performer)
        
        #Action complete handeled when our action queue is empty
@@ -218,11 +229,11 @@ class Hunt(GoTo):
 
         try:
             #When we have finished moving to where we thought the reindeer was - if we are close enough, we will "kill" it - if not we can consider that it has escaped us...
-            if Performer._ManhattanDistance(Performer.Found._GetLocation(), Performer._GetLocation()) < 2:
+            if Performer._ManhattanDistance(Performer._GetFound()._GetLocation(), Performer._GetLocation()) < 2:
          
                 #Consider this us having caught and killed the thing we were hunting
-                Performer.Found._Death()
-                Performer.Found = None
+                Performer._GetFound()._Death()
+                Performer._SetFound(None)
                 super()._ActionComplete(Performer)
 
             else:
@@ -263,7 +274,7 @@ class Find(Action):
 
         #If we have found something, we can consider this action complete and may move on with what we plan to do with this thing
         if Closest != None:
-            Performer.Found = Closest   
+            Performer._SetFound(Closest)
             self._ActionComplete(Performer)
         else:
             self.ActionFailed(Performer, "They couldn't find anything!")
@@ -275,9 +286,9 @@ class PackLavvu(Hunt):
 
     #Difference between this and stock is rather than kill it, we will put it in stock (and THEN kill it)
     def _ActionComplete(self, Performer):
-        Performer._Siida.Lavvu.remove(Performer.Found)
-        Performer.Found._Death()
-        Performer._Siida.LavvuStocked += 1
+        Performer._GetSiida()._GetLavvu().remove(Performer._GetFound())
+        Performer._GetFound()._Death()
+        Performer._GetSiida()._SetLavvuStocked(Performer._GetSiida()._GetLavvuStocked() + 1)
         super()._ActionComplete(Performer)
         
 #DEPOSIT action - all resources we are carrying will be put into the siida stockpile...
@@ -286,11 +297,11 @@ class Deposit(Action):
     def _PerformAction(self, Performer):
         super()._PerformAction(Performer) 
         
-        for i in Performer.CarryingResource:   
+        for i in Performer._GetCarryingResources():   
             #We wont always have keys that exist in carrying resources in personal resources - e.g.: wood...
             try:     
-                Performer._Siida.ResourcesInStock[i] += Performer.CarryingResource[i] - Performer.PersonalResource[i]
-                Performer.CarryingResource[i] = 0
+                Performer._GetSiida().ResourcesInStock[i] += Performer._GetCarryingResources()[i]
+                Performer._SetCarryingResources(i, 0)
             except:
                 pass
 
@@ -303,12 +314,12 @@ class BuildLavvu(Action):
         super()._PerformAction(Performer)
 
         #Plonk down a hut! [Assuming we are in the right location to do so!
-        Performer._Siida.Lavvu.append(Hut.Lavvu(IMGS.LavvuIMG, Performer._GetLocation(), Performer._GetBatch()))
+        Performer._GetSiida()._GetLavvu().append(Hut.Lavvu(IMGS.LavvuIMG, Performer._GetLocation(), Performer._GetBatch()))
     
-        if Performer._Siida.LavvuStocked > 0:
-            Performer._Siida.LavvuStocked -= 1
+        if Performer._GetSiida()._GetLavvuStocked() > 0:
+            Performer._GetSiida()._SetLavvuStocked(Performer._GetSiida()._GetLavvuStocked() - 1)
         else:
-           Performer._Siida.ResourcesInStock["WoodSupply"] -= 10
+           Performer._GetSiida().ResourcesInStock["WoodSupply"] -= 10
         self._ActionComplete(Performer)
 
     

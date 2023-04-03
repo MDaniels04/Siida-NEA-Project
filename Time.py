@@ -7,10 +7,10 @@ class TimeManager():
     
     def __init__(self, GivenWorld):
         #What day number is this? (cumulative from the start of the simulation)
-        self.DayNumber = 0
+        self.__DayNumber = 0
     
         #Passed in here as the world we want to affect on a day to day basis...
-        self.___World = GivenWorld
+        self.__World = GivenWorld
 
         #Flavour text explaining more about today - is it a special sami holiday? Is there any information in particular we wish to begin
         self.__DayDictionary = {
@@ -30,21 +30,21 @@ class TimeManager():
     #Checks that need to be ran every 2 seconds - essentially think of this as our upate function...
     #given world is what we set our 
     #No real use for delta? Pyglet has to pass it in though...
-    def Day(self, Delta):
-        self.DayNumber += 1
+    def _Day(self, Delta):
+        self.__DayNumber += 1
         print("----------------------------------------------------------------")
 
 
         
         
         #What day of the year is this?
-        DayOfYear = self.DayNumber % 365        
+        DayOfYear = self.__DayNumber % 365        
 
-        if len(self.___World.Siida.SiidaResidents) < 1:
+        if len(self.__World.Siida._GetSiidaResidents()) < 1:
            PC.unschedule(self.Day)
            print("E V E R Y O N E I S D E A D")
            print("---------------------------")
-           print("This Siida survived ", self.DayNumber, " days (", self.DayNumber // 365, " years, ", DayOfYear, " days)")
+           print("This Siida survived ", self.__DayNumber, " days (", self.__DayNumber // 365, " years, ", DayOfYear, " days)")
 
         else:
 
@@ -52,11 +52,11 @@ class TimeManager():
             print(self.__DayDictionary.get(DayOfYear, self.__DefaultDayDictionary[DayOfYear % 4]))
             
             #All the AI Stuff
-            self.___World._DailyFunction()
+            self.__World._DailyFunction()
             print("----------------------------------------------------------------")
-            print("Year number - ", (self.DayNumber // 365) + 1, "Day number - ", DayOfYear)
-            print("Total days - ", self.DayNumber)
-            print("Today it is ", self.___World._Weather.GlobalTemperature, " degrees!")
+            print("Year number - ", (self.__DayNumber // 365) + 1, "Day number - ", DayOfYear)
+            print("Total days - ", self.__DayNumber)
+            print("Today it is ", self.__World._GetWeather()._GetGlobalTemperature(), " degrees!")
 
 
         #We now need to update the cells - dont worry its not hard      
@@ -68,8 +68,9 @@ class TimeManager():
         #The general gist of how this works is we go through AI in our Siida, and assign the stack of goals to assign to them if there are any
         #The highest priority ones will supercede any others...
 
-        #IF there are problems that need addressing
-       #if len(self.___World.Siida.Problems) > 0:
-        
 
-        #For wild animals its a lot less set in stone - 
+    def _GetDayNumber(self):
+        return self.__DayNumber
+
+    def _SetDayNumber(self, Given):
+        self.__DayNumber = Given

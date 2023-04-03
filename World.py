@@ -16,7 +16,7 @@ class World(CA.CellularAutomata):
 
     #Utility function adds the map cells to the batch thats drawn
     #Used in init and if any of the map cells should change [I.E.: THEY ARE SNOWED ON]
-    def AddSelfToBatch(self):
+    def __AddSelfToBatch(self):
 
         StartX = 0
         StartY = 0
@@ -35,26 +35,24 @@ class World(CA.CellularAutomata):
                 #As double digits of AI could have the task of searching for a certain type of cell, then discerning the closest, then constructing a pathfinding route to that, I decided to streamline the process a little by filling an array with coordinates of types of cell
                 #AI may want to pathfind to. Its not the most efficient right now, but it will save time in thbe long run - trust me, w/o this we had a half-second delay or so from when the day should fire if this happened en mass...                
 
-                if j._Weight != 10000:
+                if j._GetWeight() != 10000:
 
-                    self._LandCoords.append((StartY, StartX))
+                    self.__LandCoords.append((StartY, StartX))
 
                     #We also fill lists of types of cells for easier identification - for example, rather than having an algorithm searching for tiles, we simply fill the lists, then have them iterated through and 
-                    if j._Weight == 1:
-                        self._ForestCoords.append((StartY, StartX)) 
-                    
-                    elif j._Weight == 2:
-                        self._HillCoords.append((StartY, StartX))
+                    if j._GetWeight() == 1:
+                        self.__ForestCoords.append((StartY, StartX)) 
+                   
 
-                    elif j._Weight == 50:
+                    elif j._GetWeight() == 50:
 
                         #As you've likely guessed, storing where mountains are in the worldight == 50:
-                        self._MountainCoords.append((StartY, StartX))
+                        self.__MountainCoords.append((StartY, StartX))
                     else:
       
-                        self._LowlandCoords.append((StartY, StartX))
+                        self.__LowlandCoords.append((StartY, StartX))
                 else:
-                    self._SeaCoords.append((StartY, StartX))
+                    self.__SeaCoords.append((StartY, StartX))
 
                 StartX += 1
             StartX = 0
@@ -65,16 +63,15 @@ class World(CA.CellularAutomata):
     def __init__(self, GivenDims, GivenDrawBatch, Saver):  
 
         #All the world's components hand their sprites back to this batch so we can draw them all in main...
-        #Fairly sure it all in one batch is correct, right?
-        self.DrawBatch = GivenDrawBatch      
+        self.__DrawBatch = GivenDrawBatch      
           
 
          #Different kinds of cells
-        SeaCell = Cell.Cell(IMGS.CoastIMG, 10000, (0,0), self.DrawBatch, "S", 1)
-        LandCell = Cell.Cell(IMGS.LandIMG,  0, (0,0), self.DrawBatch, "L", 0)
-        HillCell = Cell.Cell(IMGS.HillIMG, 2, (0,0), self.DrawBatch, "H",-5)
-        MountainCell = Cell.Cell(IMGS.MountainIMG, 50, (0,0), self.DrawBatch, "M",-15)
-        ForestCell = Cell.Cell(IMGS.TreeIMG, 1, (0,0), self.DrawBatch, "F",5)
+        SeaCell = Cell.Cell(IMGS.CoastIMG, 10000, (0,0), self.__DrawBatch, "S", 1)
+        LandCell = Cell.Cell(IMGS.LandIMG,  0, (0,0), self.__DrawBatch, "L", 0)
+        HillCell = Cell.Cell(IMGS.HillIMG, 2, (0,0), self.__DrawBatch, "H",-5)
+        MountainCell = Cell.Cell(IMGS.MountainIMG, 50, (0,0), self.__DrawBatch, "M",-15)
+        ForestCell = Cell.Cell(IMGS.TreeIMG, 1, (0,0), self.__DrawBatch, "F",5)
 
 
         '''
@@ -92,49 +89,46 @@ class World(CA.CellularAutomata):
         #checking if it is a correct type, we can simply find the closest coord from a likst
 
         #An array storing the coordinates of cells that aren't in the sea - used for finding locations to spawn entities... 
-        self._LandCoords = []
+        self.__LandCoords = []
     
         #Basic land cells
-        self._LowlandCoords = []
+        self.__LowlandCoords = []
 
         #Same thing for sea cells 
-        self._SeaCoords = []
+        self.__SeaCoords = []
 
         #The difference between this and the above is the above stores where has the wood resource - and shrinks as trees are cut down... This is the forest tiles - tree or not.
-        self._ForestCoords = []
-
-        #Storing where hills are on the map
-        self._HillCoords = []
+        self.__ForestCoords = []
 
         #As you've likely guessed, storing where mountains are in the world
-        self._MountainCoords = []
+        self.__MountainCoords = []
 
         #Our weather manager, dealing with the weather across the world.
-        self._Weather = W.WeatherManager(self, Saver)
+        self.__Weather = W.WeatherManager(self, Saver)
     
-        self.Time = T.TimeManager(self)
+        self.__Time = T.TimeManager(self)
 
 
         #Reindeer currently in the world...
-        self._Reindeer = []
+        self.__Reindeer = []
 
-        if Saver.bFileToLoad == True:
-            self.Time.DayNumber = Saver.SaveData[1]
+        if Saver._GetFileToLoad() == True:
+            self.__Time._SetDayNumber(Saver._GetSaveData()[1])
             
             #Get our uncompressed map, add it on...
 
-            self._Grid =  Saver.ConvertGrid(Saver.SaveData[2], self._Grid, S = SeaCell, L = LandCell, H = HillCell, F = ForestCell, M = MountainCell,)
+            self._Grid =  Saver._ConvertGrid(Saver._GetSaveData()[2], self._Grid, S = SeaCell, L = LandCell, H = HillCell, F = ForestCell, M = MountainCell,)
             
-            self._Weather.CumCloudChance = Saver.SaveData[6]            
+            self.__Weather.CumCloudChance = Saver._GetSaveData()[6]            
 
             #Map is sorted
 
             #Add our AI in...
 
 
-            for i in Saver.AIData:
+            for i in Saver._GetAIData():
 
-                OldReindeer = Reindeer.Reindeer(IMGS.ReindeerIMG, self, Saver.ConvertCoordinates(i[10]))
+                OldReindeer = Reindeer.Reindeer(IMGS.ReindeerIMG, self, Saver._ConvertCoordinates(i[10]))
 
                 OldReindeer.CurrentState = i[1]
                 OldReindeer.ActionQueue = pickle.loads(i[2])
@@ -143,10 +137,10 @@ class World(CA.CellularAutomata):
                 OldReindeer.ActiveAction = pickle.loads(i[5])
                 OldReindeer.MoveQueue = pickle.loads(i[6])
                 OldReindeer.Hunter = pickle.loads(i[7])
-                OldReindeer.GoalLocation = Saver.ConvertCoordinates(i[9])
+                OldReindeer.GoalLocation = Saver._ConvertCoordinates(i[9])
             
-                self._Reindeer.append(OldReindeer)
-            self.AddSelfToBatch()
+                self.__Reindeer.append(OldReindeer)
+            self.__AddSelfToBatch()
             
 
         else:
@@ -169,11 +163,11 @@ class World(CA.CellularAutomata):
             self._AddNoiseToGrid(ForestCell, LandCell, 90)
             self._RefineFeature(4, ForestCell, LandCell, 6,7)
 
-            self.AddSelfToBatch()
+            self.__AddSelfToBatch()
         
             #Randomly spawn some reindeer...
             for i in range(1,7):
-                self._Reindeer.append(Reindeer.Reindeer(IMGS.ReindeerIMG, self, self._LandCoords[random.randrange(0, len(self._LandCoords))]))
+                self.__Reindeer.append(Reindeer.Reindeer(IMGS.ReindeerIMG, self, self.__LandCoords[random.randrange(0, len(self.__LandCoords))]))
         
             '''
 
@@ -186,8 +180,36 @@ class World(CA.CellularAutomata):
 
     #The world's daily function :)
     def _DailyFunction(self):
-        self._Weather._DailyFunction()
+        self.__Weather._DailyFunction()
         self.Siida._DailyFunction()
 
-        for Rein in self._Reindeer:
+        for Rein in self.__Reindeer:
            Rein._DailyFunction()
+
+
+    def _GetDrawBatch(self):
+        return self.__DrawBatch
+
+    def _GetLandCoords(self):
+        return self.__LandCoords
+
+    def _GetLowlandCoords(self):
+        return self.__LowlandCoords
+
+    def _GetSeaCoords(self):
+        return self.__SeaCoords
+
+    def _GetForestCoords(self):
+        return self.__ForestCoords
+
+    def _GetMountainCoords(self):
+        return self.__MountainCoords
+
+    def _GetWeather(self):
+        return self.__Weather
+
+    def _GetTime(self):
+        return self.__Time
+
+    def _GetReindeer(self):
+        return self.__Reindeer

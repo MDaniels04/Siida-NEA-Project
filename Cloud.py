@@ -21,11 +21,11 @@ class Cloud(CA.CellularAutomata):
             
             #Iterate through our grid, apply sprites and such to 
             for iC, iV in enumerate(self._Grid):
-                if TopCoord[0] + iC < len(self.__WeatherManager._Owner._Grid[0]):
+                if TopCoord[0] + iC < len(self.__WeatherManager._GetOwner()._Grid[0]):
 
                     for jC, jV in enumerate(iV):
                         #Protection of going over map range
-                        if TopCoord[1] + jC < len(self.__WeatherManager._Owner._Grid):
+                        if TopCoord[1] + jC < len(self.__WeatherManager._GetOwner()._Grid):
                             if jV == "~":
                                 #Grid locations of where this cloud should be Precipitating now...
                                 NewCells.append((TopCoord[0] + iC, TopCoord[1] + jC))
@@ -39,14 +39,14 @@ class Cloud(CA.CellularAutomata):
             #Compare the cells that should be raining now with those that were raining last iteration...
             for Cell in NewCells:         
                 if Cell not in self.__AffectingCells:
-                    CellObj = self.__WeatherManager._Owner._Grid[Cell[1]][Cell[0]]
+                    CellObj = self.__WeatherManager._GetOwner()._Grid[Cell[1]][Cell[0]]
 
-                    if self.__WeatherManager.GlobalTemperature < 0:
+                    if self.__WeatherManager._GetGlobalTemperature() < 0:
                         CellObj._SetPrecipitating(2)
                     else:
                         CellObj._SetPrecipitating(1)
 
-                    NewSprite = pyglet.sprite.Sprite(IMGS.CloudIMG, Cell[1] * 16, Cell[0] * 16, batch=self.__WeatherManager._Owner.DrawBatch, group=IMGS.Weather)
+                    NewSprite = pyglet.sprite.Sprite(IMGS.CloudIMG, Cell[1] * 16, Cell[0] * 16, batch=self.__WeatherManager._GetOwner()._GetDrawBatch(), group=IMGS.Weather)
                     NewSprite.opacity = 195
                     self.__CloudSprites.append(NewSprite)
             
@@ -94,7 +94,7 @@ class Cloud(CA.CellularAutomata):
             for d in self.__CloudSprites:
                 d.delete()
             self.__CloudSprites.clear()
-            self.__WeatherManager._CloudsInWorld.remove(self)
+            self.__WeatherManager._GetCloudsInWorld().remove(self)
             del self
                      
     #Spent a long time trying to think of a name that captured what this does
@@ -104,7 +104,7 @@ class Cloud(CA.CellularAutomata):
          
         #Reset precipitation for nearby cells...
         for Cell in self.__AffectingCells:
-            CellObj = self.__WeatherManager._Owner._Grid[Cell[1]][Cell[0]]
+            CellObj = self.__WeatherManager._GetOwner()._Grid[Cell[1]][Cell[0]]
             CellObj._SetPrecipitating(0)
 
                                             #Up to 11 as this is lower <= x < higher

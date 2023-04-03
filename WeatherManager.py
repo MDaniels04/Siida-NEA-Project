@@ -13,42 +13,42 @@ class WeatherManager():
         #We have clouds to load in!
         
         #A list to keep track of what clouds are currently in the world so they can be easily found again for dissapation
-        self._CloudsInWorld = []
+        self.__CloudsInWorld = []
     
         #The global temperature (differs on a cell by cell basis due to modifiers in the terrain)                
-        self.GlobalTemperature = 0
+        self.__GlobalTemperature = 0
     
         #The cumulative chance of spawning a cloud every day
-        self._CumCloudChance = 0
+        self.__CumCloudChance = 0
 
 
         #Temp offset is the amount we translate the graph by - normally at the start of year it would be -20 degrees, but our offset makes it even colder 
         self.__TempOffset = GivenTempOffset
 
-        self._Owner = GivenOwner
+        self.__Owner = GivenOwner
 
-        if Saver.bFileToLoad == True:
+        if Saver._GetFileToLoad() == True:
 
-            self._CumCloudChance = Saver.SaveData[6]
+            self.__CumCloudChance = Saver._GetSaveData()[6]
 
-            for i in Saver.CloudsSaved:
+            for i in Saver._GetCloudsSaved():
                 #Create a new cloud, set this as the grid, etc...
                 NewCloud = C.Cloud(self, i[3])
-                NewCloud._SetLocation(Saver.ConvertCoordinates(i[1]))
-                NewCloud._Grid = Saver.ConvertGrid(i[2], NewCloud._Grid)       
+                NewCloud._SetLocation(Saver._ConvertCoordinates(i[1]))
+                NewCloud._Grid = Saver._ConvertGrid(i[2], NewCloud._Grid)       
                 NewCloud._ApplyToMap()
-                self._CloudsInWorld.append(NewCloud)
+                self.__CloudsInWorld.append(NewCloud)
 
         
     def __SpawnCloud(self):
-        self._CloudsInWorld.append(C.Cloud(self))
+        self.__CloudsInWorld.append(C.Cloud(self))
 
 
     def __UpdateTemperature(self, DayNumber):
 
         #Temperature fluctuation to make it slightly more random
         Fluct =  random.randrange(1,6)       
-        self.GlobalTemperature = round(((-20 * math.cos((2 * math.pi * DayNumber) / 365)) + self.__TempOffset + Fluct), 0)
+        self.__GlobalTemperature = round(((-20 * math.cos((2 * math.pi * DayNumber) / 365)) + self.__TempOffset + Fluct), 0)
                                                                              
     #Function ran every "day"
     def _DailyFunction(self):
@@ -61,7 +61,7 @@ class WeatherManager():
         
         #Firstly we update existing clouds by telling them to degenerate..
     
-        for Cloud in self._CloudsInWorld:
+        for Cloud in self.__CloudsInWorld:
             Cloud._Degenerate()
         
         #Chance to spawn a cloud, if not increase cumultaive  chance
@@ -69,16 +69,16 @@ class WeatherManager():
         #Max number of clouds at once is 4...
 
         #Else we dont even touch our cumulative cloud chance...
-        if len(self._CloudsInWorld) < 4:
+        if len(self.__CloudsInWorld) < 4:
 
-            Chance = random.randrange(self._CumCloudChance, 15)
+            Chance = random.randrange(self.__CumCloudChance, 15)
 
             if Chance == 14:
                 self.__SpawnCloud()
-                self._CumCloudChance = 0
+                self.__CumCloudChance = 0
 
             else:
-                self._CumCloudChance += 1
+                self.__CumCloudChance += 1
 
         '''
 
@@ -86,12 +86,21 @@ class WeatherManager():
 
         '''
         
-        self.__UpdateTemperature(self._Owner.Time.DayNumber)
+        self.__UpdateTemperature(self.__Owner._GetTime()._GetDayNumber())
               
             
             
 
              
             
+    def _GetCloudsInWorld(self):
+        return self.__CloudsInWorld
     
-    
+    def _GetGlobalTemperature(self):
+        return self.__GlobalTemperature
+
+    def _GetCumulativeCloudChance(self):
+        return self.__CumCloudChance
+
+    def _GetOwner(self):
+        return self.__Owner
