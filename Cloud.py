@@ -52,7 +52,7 @@ class Cloud(CA.CellularAutomata):
             
             #No cells, so we can class this cloud as gone...
             if len(self.__CloudSprites) < 1:
-                self.__DestroyCloud()
+                self.DestroyCloud()
 
             self.__AffectingCells = NewCells
 
@@ -89,7 +89,7 @@ class Cloud(CA.CellularAutomata):
             self._ApplyToMap()
                 
     #Cant use destructor cos we cant access variables after its deleted and we need to ensure the sprites are gone!
-    def __DestroyCloud(self):
+    def DestroyCloud(self):
             #Ensure our sprites are gone
             for d in self.__CloudSprites:
                 d.delete()
@@ -109,7 +109,7 @@ class Cloud(CA.CellularAutomata):
 
                                             #Up to 11 as this is lower <= x < higher
         if random.randrange(self.__CloudAge, 11) == 10:
-            self.__DestroyCloud()
+            self.DestroyCloud()
         else:
 
         #Our cellular automation algorithm basically will run on the grid for a pass or 2, with differing adjacency
