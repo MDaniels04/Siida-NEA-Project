@@ -115,10 +115,6 @@ class Siida():
 
             #Each member of the Siida will eat 5 arbitrary food units a day - this is enough food for a month  
             #Seems like a lot but trust me its gonna get scarce....    
-
-            #Tracking what structres are in the siida - need to be all packed up in order to migrate...
-
-            self.StructuresInSiida = []
                           
             self.ResourcesInStock = {
 
