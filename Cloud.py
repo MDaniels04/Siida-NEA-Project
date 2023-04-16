@@ -34,7 +34,6 @@ class Cloud(CA.CellularAutomata):
             #Update our next position to spawn in...
             self.__Location = TopCoord
 
-            #FUTURE MORGAN FIX HERE!
 
             #Compare the cells that should be raining now with those that were raining last iteration...
             for Cell in NewCells:         

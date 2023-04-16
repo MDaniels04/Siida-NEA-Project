@@ -118,7 +118,7 @@ class Siida():
                           
             self.ResourcesInStock = {
 
-                #When residents don't have enough food, they will get the hungry tag. If they remain hungry for a week, they die.
+                #When residents don't have enough food, they will get the hungry tag. If they remain hungry for a time, they die.
                 "FoodSupply":len(self.__SiidaResidents) * 150,
 
                 #Wood is used for the construction of lavvu and the burning of fires
@@ -175,7 +175,7 @@ class Siida():
          
         #If there is less than enough food for a week left, we need to get more (the threshold at which we decide more food must be gathered may chane...)
 
-        if ((self.ResourcesInStock["FoodSupply"] < len(self.__SiidaResidents) * 100)) and self.CryCooldown[0] == 0:
+        if ((self.ResourcesInStock["FoodSupply"] < len(self.__SiidaResidents) * 50)) and self.CryCooldown[0] == 0:
             print("Food's running low!")
             self.CryCooldown[0] += 50
                                                                    #When quantity stuff is repaired, add a quantity of food that will satisfy the crowd for 2 weeks [SUBJECT TO CHANGE W/ BALANCE]

@@ -99,7 +99,7 @@ class Resident(AI.AI):
                 #Go to a location in Siida
                 Action.GoToInSiida([Tag.Tag("AtBuildSite")], True, "find a place in the Siida to build!", 1),
 
-                #future morgan, implement this action here - problems come from not checking that goals tags are still met - if we performa ctions we r assuming we have tags....
+                #Deposit resources back at the Siida.
                 Action.Deposit([Tag.Tag("Deposited")], False, "drop off the food at the Siida", 1, [Tag.Tag("At_SiidaCentre")])
            
             ])
@@ -115,7 +115,7 @@ class Resident(AI.AI):
             self.__Siida.NeededGoals.append(self._GetActiveGoal())
 
 
-        self.__Siida._SiidaResidents.remove(self)
+        self.__Siida._GetSiidaResidents().remove(self)
         super()._Death()
 
     #Overload of daily function to check for temperature...
@@ -123,14 +123,13 @@ class Resident(AI.AI):
         
         #Our exposure increases if we are in a cold place
 
-        #Debug temperature difference to prevent us from dying from the cold!
-        TempDiff = self._GetWorld()._Grid[self._GetLocation()[1]][self._GetLocation()[0]]._GetTemperature(self._GetWorld()._GetWeather()._GetGlobalTemperature()) + 20
+        TempDiff = self._GetWorld()._Grid[self._GetLocation()[1]][self._GetLocation()[0]]._GetTemperature(self._GetWorld()._GetWeather()._GetGlobalTemperature()) + 25
         if TempDiff < 0:
             self.__Expsoure += abs(TempDiff * 5)
         else:
             self.__Expsoure = 0
 
-        if self.__Expsoure >= 100:
+        if self.__Expsoure >= 500:
             self._Death("overexposure to the cold!")
             pass
         else:

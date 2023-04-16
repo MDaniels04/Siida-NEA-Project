@@ -105,8 +105,6 @@ class DesicionMaker():
         #Our goal object doesn't have a weight attribute so this is an error catch
         if GoalConnect != (1,0):
             Weight = GivenGoal._GetWeight()
-
-        #DEBUG CHANGE
         else:
             pass
            

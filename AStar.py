@@ -109,8 +109,6 @@ class AStar():
                 #Append at the beginning like a stack!
                 Path.insert(0, Current) 
 
-                #But not technically a "stack"
-                #Im not sure what counts to get marks to be completely honest with you, so I might just say I have stacks and hope that it flies... 
 
         return Path
  

@@ -1,5 +1,4 @@
 import Goal
-import math
 import random
 import Hut
 import IMGS
@@ -209,7 +208,6 @@ class Wander(GoTo):
         except:
            
             #Go to a random land coordinate
-            #Might have to fix...
             self._GoTo = random.choice(Performer._GetWorld()._GetLandCoords())
 
         super()._PerformAction(Performer)
@@ -321,7 +319,3 @@ class BuildLavvu(Action):
         else:
            Performer._GetSiida().ResourcesInStock["WoodSupply"] -= 10
         self._ActionComplete(Performer)
-
-    
-
-    

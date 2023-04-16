@@ -41,7 +41,7 @@ class TimeManager():
         DayOfYear = self.__DayNumber % 365        
 
         if len(self.__World.Siida._GetSiidaResidents()) < 1:
-           PC.unschedule(self.Day)
+           PC.unschedule(self._Day)
            print("E V E R Y O N E I S D E A D")
            print("---------------------------")
            print("This Siida survived ", self.__DayNumber, " days (", self.__DayNumber // 365, " years, ", DayOfYear, " days)")
